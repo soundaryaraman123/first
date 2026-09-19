@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import { useEffect, useRef, useState } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 // ---------------------------------------------------------------------------
 // Flower: 8 fixed ring "slots" (N, NE, E, SE, S, SW, W, NW) on a 7x7 pixel
@@ -68,7 +69,7 @@ function cellPos(row: number, col: number) {
 
 function Flower({ config }: { config: FlowerConfig }) {
   const [slots, setSlots] = useState<number[]>(config.active)
-  const timer = useRef<number | null>(null)
+  const timer = useRef<ReturnType<typeof window.setInterval> | null>(null)
 
   function startRotating() {
     if (timer.current) return
@@ -180,9 +181,9 @@ function Bot() {
   const [blinking, setBlinking] = useState(false)
 
   useEffect(() => {
-    let lookTimeout: number
-    let blinkOpenTimeout: number
-    let blinkTimeout: number
+    let lookTimeout: ReturnType<typeof window.setTimeout>
+    let blinkOpenTimeout: ReturnType<typeof window.setTimeout>
+    let blinkTimeout: ReturnType<typeof window.setTimeout>
 
     function look() {
       const dx = Math.random() * 6 - 3
@@ -267,8 +268,8 @@ function useTeleport(initialIndex: number) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    let cycleTimeout: number
-    let jumpTimeout: number
+    let cycleTimeout: ReturnType<typeof window.setTimeout>
+    let jumpTimeout: ReturnType<typeof window.setTimeout>
 
     function cycle() {
       setVisible(false)
