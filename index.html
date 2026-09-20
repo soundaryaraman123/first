@@ -180,33 +180,28 @@
 
   /* ---------------- Flower ---------------- */
 
-  .flower { position: absolute; transform-origin: center; }
-  .flower__core { position: absolute; }
+  .flower {
+    position: absolute;
+    width: 84px;
+    height: 84px;
+    transform: translate(-50%, -50%);
+  }
+  .flower__core { position: absolute; inset: 0; }
 
   .px {
     position: absolute;
-    width: var(--cell, 12px);
-    height: var(--cell, 12px);
+    width: 12px;
+    height: 12px;
     border-radius: 1px;
   }
-
-  .px--yellow { background: var(--yellow); }
-  .px--purple { background: var(--purple); }
 
   .petal {
     position: absolute;
-    width: var(--cell, 12px);
-    height: var(--cell, 12px);
+    width: 12px;
+    height: 12px;
     background: var(--pink);
     border-radius: 1px;
     transition: left .18s ease, top .18s ease, opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-
-  .flower--outline .petal,
-  .flower--outline .px--yellow,
-  .flower--outline .px--purple {
-    background: transparent;
-    border: 2px solid var(--pink-soft);
   }
 
   .dust {
@@ -371,11 +366,11 @@
   <div class="hero__illustration" id="illustration">
     <div class="grid-bg"></div>
     <svg class="vines" viewBox="0 0 900 900" preserveAspectRatio="none">
-      <path class="vine" d="M150,900 C150,760 230,740 210,650 C190,560 120,560 120,470" />
-      <path class="vine" d="M330,900 C330,780 400,760 380,660 C360,570 300,560 300,420" />
-      <path class="vine" d="M520,900 C520,770 460,740 480,640 C500,540 560,540 560,430" />
-      <path class="vine" d="M700,900 C700,760 640,730 660,630 C680,540 740,540 740,380" />
-      <path class="vine" d="M420,900 C440,820 500,800 470,720 C440,640 380,630 380,560" />
+      <path class="vine" d="M174,900 C174,760 254,740 234,650 C214,560 144,560 144,470" />
+      <path class="vine" d="M414,900 C414,780 484,760 464,660 C444,570 384,560 384,420" />
+      <path class="vine" d="M610,900 C610,770 550,740 570,640 C590,540 650,540 650,430" />
+      <path class="vine" d="M741,900 C741,760 681,730 701,630 C721,540 781,540 781,380" />
+      <path class="vine" d="M130,900 C130,860 100,840 110,800" />
       <path class="vine" d="M80,900 C60,840 40,820 70,780" />
     </svg>
     <div class="flowers"></div>
@@ -431,79 +426,74 @@
   const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // -------------------------------------------------------------------------
-  // Flower: 8 fixed ring "slots" on a 7x7 pixel grid. Petals only ever
-  // occupy these slots. On hover they rotate around the ring (sliding
-  // slot-to-slot); on mouse-leave they ease back to idle. They never
-  // appear outside the ring. Every flower keeps at least one empty slot
-  // so the rotation is visible.
+  // Flower: each flower's exact pixel layout, sampled directly from the
+  // reference illustration (cell coordinates relative to its own core
+  // center; "y"=core yellow, "u"=ring purple, "p"=petal pink). Petals are
+  // the only cells that move: on hover they rotate around their own fixed
+  // ring of positions (sliding slot-to-slot); on mouse-leave they ease
+  // back to this exact idle arrangement. They never appear outside that
+  // fixed set of positions. Core/ring cells never move.
   // -------------------------------------------------------------------------
 
   const CELL = 12;
-  const SLOT_ORDER = [
-    { row: 0, col: 3 }, { row: 1, col: 5 }, { row: 3, col: 6 }, { row: 5, col: 5 },
-    { row: 6, col: 3 }, { row: 5, col: 1 }, { row: 3, col: 0 }, { row: 1, col: 1 },
-  ];
-  const CORE_YELLOW = [[2,2],[2,3],[2,4],[3,2],[3,3],[3,4],[4,2],[4,3],[4,4]];
-  const CORE_PURPLE = [[1,2],[1,3],[1,4],[5,2],[5,3],[5,4],[2,1],[3,1],[4,1],[2,5],[3,5],[4,5]];
 
-  const FLOWER_CONFIGS = [
-    { left: "10%", top: "12%", scale: 1.15, core: "yellow-purple", active: [0,1,2,4,5,6,7] },
-    { left: "33%", top: "30%", scale: 0.8, core: "yellow-only", active: [0,2,4,6] },
-    { left: "72%", top: "8%", scale: 1.3, core: "yellow-purple", active: [0,1,2,4,5,6,7] },
-    { left: "55%", top: "42%", scale: 1.05, core: "yellow-purple", active: [0,1,3,4,5,6,7] },
-    { left: "6%", top: "62%", scale: 1.0, core: "outline", active: [0,1,2,3,4,6,7] },
+  const FLOWERS = [
+    { cx: "19.3%", cy: "21.8%", cells: [[-3,0,"p"],[-2,-3,"p"],[-2,-1,"u"],[-2,0,"u"],[-2,1,"u"],[-2,3,"p"],[-1,-2,"u"],[-1,-1,"y"],[-1,0,"y"],[-1,1,"y"],[-1,2,"u"],[0,-3,"p"],[0,-2,"u"],[0,-1,"y"],[0,0,"y"],[0,1,"y"],[0,2,"u"],[0,3,"p"],[1,-2,"u"],[1,-1,"y"],[1,0,"y"],[1,1,"y"],[1,2,"u"],[2,-3,"p"],[2,-1,"u"],[2,0,"u"],[2,1,"u"],[2,3,"p"],[3,0,"p"]] },
+    { cx: "82.3%", cy: "26.7%", cells: [[-3,-2,"p"],[-3,0,"p"],[-3,2,"p"],[-2,-3,"p"],[-2,-2,"u"],[-2,-1,"u"],[-2,0,"u"],[-2,1,"u"],[-2,2,"u"],[-2,3,"p"],[-1,-1,"y"],[-1,0,"y"],[-1,1,"y"],[0,-3,"p"],[0,-2,"u"],[0,-1,"y"],[0,0,"y"],[0,1,"y"],[0,2,"u"],[0,3,"p"],[1,-1,"y"],[1,0,"y"],[1,1,"y"],[2,-3,"p"],[2,-2,"u"],[2,-1,"u"],[2,0,"u"],[2,1,"u"],[2,2,"u"],[2,3,"p"],[3,-2,"p"],[3,0,"p"],[3,2,"p"]] },
+    { cx: "46.0%", cy: "34.0%", cells: [[-3,0,"p"],[-2,-2,"u"],[-2,0,"u"],[-2,2,"u"],[-1,-1,"y"],[-1,0,"y"],[-1,1,"y"],[0,-3,"p"],[0,-2,"u"],[0,-1,"y"],[0,0,"y"],[0,1,"y"],[0,2,"u"],[0,3,"p"],[1,-1,"y"],[1,0,"y"],[1,1,"y"],[2,-2,"u"],[2,0,"u"],[2,2,"u"],[3,0,"p"]] },
+    { cx: "67.8%", cy: "48.7%", cells: [[-3,-2,"p"],[-3,0,"p"],[-3,2,"p"],[-2,-3,"p"],[-2,-1,"u"],[-2,0,"u"],[-2,1,"u"],[-2,3,"p"],[-1,-2,"u"],[-1,-1,"y"],[-1,0,"y"],[-1,1,"y"],[-1,2,"u"],[0,-3,"p"],[0,-2,"u"],[0,-1,"y"],[0,0,"y"],[0,1,"y"],[0,2,"u"],[0,3,"p"],[1,-2,"u"],[1,-1,"y"],[1,0,"y"],[1,1,"y"],[1,2,"u"],[2,-3,"p"],[2,-1,"u"],[2,0,"u"],[2,1,"u"],[2,3,"p"],[3,-2,"p"],[3,0,"p"],[3,2,"p"]] },
+    { cx: "14.5%", cy: "68.2%", cells: [[-3,-2,"p"],[-3,-1,"p"],[-3,1,"p"],[-3,2,"p"],[-2,-3,"p"],[-2,0,"u"],[-2,3,"p"],[-1,-3,"p"],[-1,-1,"y"],[-1,0,"y"],[-1,1,"y"],[-1,3,"p"],[0,-2,"u"],[0,-1,"y"],[0,0,"y"],[0,1,"y"],[0,2,"u"],[1,-3,"p"],[1,-1,"y"],[1,0,"y"],[1,1,"y"],[1,3,"p"],[2,-3,"p"],[2,0,"u"],[2,3,"p"],[3,-2,"p"],[3,-1,"p"],[3,1,"p"],[3,2,"p"]] },
   ];
 
-  function cellPos(row, col) { return { left: col * CELL + "px", top: row * CELL + "px" }; }
+  const COLOR = { y: "var(--yellow)", u: "var(--purple)", p: "var(--pink)" };
 
-  function buildFlower(config) {
+  function cellPos(dr, dc) { return { left: (dc + 3) * CELL + "px", top: (dr + 3) * CELL + "px" }; }
+
+  function buildFlower(flower) {
     const el = document.createElement("div");
-    el.className = "flower" + (config.core === "outline" ? " flower--outline" : "");
-    el.style.left = config.left;
-    el.style.top = config.top;
-    el.style.width = 7 * CELL + "px";
-    el.style.height = 7 * CELL + "px";
-    el.style.transform = `scale(${config.scale})`;
+    el.className = "flower";
+    el.style.left = flower.cx;
+    el.style.top = flower.cy;
 
     const core = document.createElement("div");
     core.className = "flower__core";
-
-    if (config.core !== "outline") {
-      CORE_YELLOW.forEach(([r, c]) => {
-        const px = document.createElement("div");
-        px.className = "px px--yellow";
-        Object.assign(px.style, cellPos(r, c));
-        core.appendChild(px);
+    flower.cells
+      .filter(([, , type]) => type !== "p")
+      .forEach(([dr, dc, type]) => {
+        const cell = document.createElement("div");
+        cell.className = "px";
+        cell.style.background = COLOR[type];
+        Object.assign(cell.style, cellPos(dr, dc));
+        core.appendChild(cell);
       });
-    }
-    if (config.core === "yellow-purple") {
-      CORE_PURPLE.forEach(([r, c]) => {
-        const px = document.createElement("div");
-        px.className = "px px--purple";
-        Object.assign(px.style, cellPos(r, c));
-        core.appendChild(px);
-      });
-    }
     el.appendChild(core);
 
-    const petals = config.active.map((slotIndex) => {
+    // Petal ring slots in their exact idle positions, ordered by angle so
+    // "rotate by one" always moves each petal to its next neighbor around
+    // the ring rather than jumping across it.
+    const slots = flower.cells
+      .filter(([, , type]) => type === "p")
+      .map(([dr, dc]) => ({ dr, dc }))
+      .sort((a, b) => Math.atan2(a.dr, a.dc) - Math.atan2(b.dr, b.dc));
+    const n = slots.length;
+
+    const petals = slots.map((_, i) => {
       const petal = document.createElement("div");
       petal.className = "petal";
-      const { row, col } = SLOT_ORDER[slotIndex];
-      Object.assign(petal.style, cellPos(row, col));
+      Object.assign(petal.style, cellPos(slots[i].dr, slots[i].dc));
       el.appendChild(petal);
-      return { el: petal, slot: slotIndex };
+      return { el: petal, slot: i };
     });
 
-    let rotateTimer = null;
     function applyPositions() {
-      petals.forEach((p) => Object.assign(p.el.style, cellPos(SLOT_ORDER[p.slot].row, SLOT_ORDER[p.slot].col)));
+      petals.forEach((p) => Object.assign(p.el.style, cellPos(slots[p.slot].dr, slots[p.slot].dc)));
     }
 
+    let rotateTimer = null;
     el.addEventListener("mouseenter", () => {
-      if (rotateTimer) return;
+      if (rotateTimer || n < 2) return;
       rotateTimer = setInterval(() => {
-        petals.forEach((p) => { p.slot = (p.slot + 1) % 8; });
+        petals.forEach((p) => { p.slot = (p.slot + 1) % n; });
         applyPositions();
       }, 170);
     });
@@ -511,7 +501,7 @@
     el.addEventListener("mouseleave", () => {
       clearInterval(rotateTimer);
       rotateTimer = null;
-      petals.forEach((p, i) => { p.slot = config.active[i]; });
+      petals.forEach((p, i) => { p.slot = i; });
       applyPositions();
     });
 
@@ -524,7 +514,7 @@
   // settling into a considered, fixed structure.
   // -------------------------------------------------------------------------
 
-  function spawnDust(el, count, scale) {
+  function spawnDust(el, count) {
     const colors = ["var(--yellow)", "var(--purple)", "var(--pink)"];
     const dots = [];
     for (let i = 0; i < count; i++) {
@@ -532,12 +522,11 @@
       dot.className = "dust";
       const size = 4 + Math.random() * 5;
       const angle = Math.random() * Math.PI * 2;
-      const dist = (60 + Math.random() * 90) * scale;
-      const cx = 42 * scale, cy = 42 * scale;
+      const dist = 60 + Math.random() * 90;
       dot.style.width = size + "px";
       dot.style.height = size + "px";
-      dot.style.left = cx + "px";
-      dot.style.top = cy + "px";
+      dot.style.left = "42px";
+      dot.style.top = "42px";
       dot.style.background = colors[i % colors.length];
       dot.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
       dot.style.opacity = "0.85";
@@ -557,9 +546,7 @@
       return;
     }
 
-    const scaleMatch = flowerEl.style.transform.match(/scale\(([\d.]+)\)/);
-    const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-    const dots = spawnDust(flowerEl, 16, 1 / scale);
+    const dots = spawnDust(flowerEl, 16);
 
     setTimeout(() => {
       dots.forEach((d) => {
@@ -627,27 +614,32 @@
   // illustration: fade out, jump, fade back in.
   // -------------------------------------------------------------------------
 
-  const ANCHORS = [
-    { x: "20%", y: "48%" }, { x: "38%", y: "58%" }, { x: "62%", y: "36%" },
-    { x: "80%", y: "58%" }, { x: "15%", y: "78%" }, { x: "48%", y: "78%" },
-    { x: "70%", y: "75%" }, { x: "30%", y: "18%" }, { x: "85%", y: "32%" },
-    { x: "55%", y: "65%" },
+  // Reference idle positions (sampled directly from the illustration) come
+  // first in each agent's anchor list, so the first frame matches exactly;
+  // the rest are scattered fill-in points it wanders to afterward.
+  const BOT_ANCHORS = [
+    { x: "69.2%", y: "65.7%" }, { x: "23.0%", y: "87.7%" },
+    { x: "38%", y: "58%" }, { x: "48%", y: "78%" }, { x: "30%", y: "18%" },
+  ];
+  const CURSOR_ANCHORS = [
+    { x: "35.4%", y: "53.0%" }, { x: "92.6%", y: "80.9%" },
+    { x: "62%", y: "36%" }, { x: "15%", y: "78%" }, { x: "85%", y: "32%" },
   ];
 
   function placeAt(el, anchor) { el.style.left = anchor.x; el.style.top = anchor.y; }
 
-  function startTeleporting(el, initialAnchorIndex) {
-    let current = initialAnchorIndex;
-    placeAt(el, ANCHORS[current]);
+  function startTeleporting(el, anchors, initialIndex) {
+    let current = initialIndex;
+    placeAt(el, anchors[current]);
     if (REDUCE_MOTION) return;
 
     function cycle() {
       el.style.opacity = "0";
       setTimeout(() => {
         let next = current;
-        while (next === current) next = Math.floor(Math.random() * ANCHORS.length);
+        while (next === current) next = Math.floor(Math.random() * anchors.length);
         current = next;
-        placeAt(el, ANCHORS[current]);
+        placeAt(el, anchors[current]);
         el.style.opacity = "1";
       }, 420);
       setTimeout(cycle, 3200 + Math.random() * 2600);
@@ -656,51 +648,53 @@
   }
 
   // -------------------------------------------------------------------------
-  // Process section icons: literally the flower's own four layers
-  // (seed / core / ring / petals), reused as the process glyphs.
+  // Process section icons: echo the flower's own layers (seed / core /
+  // ring / petal ring) as the process glyphs.
   // -------------------------------------------------------------------------
 
   function buildProcessIcon(kind) {
     const wrap = document.createElement("div");
-    const put = (r, c, color, size) => {
+    const put = (dr, dc, color) => {
       const px = document.createElement("div");
       px.className = "px";
       px.style.background = color;
-      px.style.left = c * 12 + "px";
-      px.style.top = r * 12 + "px";
-      if (size) { px.style.width = size + "px"; px.style.height = size + "px"; }
+      px.style.left = (dc + 2) * 10 + "px";
+      px.style.top = (dr + 2) * 10 + "px";
       wrap.appendChild(px);
     };
     if (kind === "plan") {
-      put(2, 2, "var(--yellow)");
+      put(0, 0, "var(--yellow)");
     } else if (kind === "build") {
-      CORE_YELLOW.forEach(([r, c]) => put(r - 1, c - 1, "var(--yellow)"));
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) put(dr, dc, "var(--yellow)");
     } else if (kind === "review") {
-      CORE_YELLOW.forEach(([r, c]) => put(r - 1, c - 1, "var(--yellow)"));
-      CORE_PURPLE.forEach(([r, c]) => put(r - 1, c - 1, "var(--purple)"));
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) put(dr, dc, "var(--yellow)");
+      [[-2,-1],[-2,0],[-2,1],[2,-1],[2,0],[2,1],[-1,-2],[0,-2],[1,-2],[-1,2],[0,2],[1,2]]
+        .forEach(([dr, dc]) => put(dr, dc, "var(--purple)"));
     } else if (kind === "iterate") {
-      SLOT_ORDER.forEach(({ row, col }) => put(row - 1, col - 1, "var(--pink)"));
-      put(3, 3, "var(--yellow)");
+      [[-2,-2],[-2,0],[-2,2],[0,-2],[0,2],[2,-2],[2,0],[2,2]].forEach(([dr, dc]) => put(dr, dc, "var(--pink)"));
+      put(0, 0, "var(--yellow)");
     }
     return wrap;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
     const flowerLayer = document.querySelector(".flowers");
-    FLOWER_CONFIGS.forEach((config, i) => {
-      const { el, core, petals } = buildFlower(config);
+    FLOWERS.forEach((flower, i) => {
+      const { el, core, petals } = buildFlower(flower);
       flowerLayer.appendChild(el);
       playGenerateIn(el, core, petals, i * 150 + 150);
     });
 
     const agentLayer = document.querySelector(".agents");
-    const bot = buildBot();
-    const cursorA = buildCursor();
-    const cursorB = buildCursor();
-    agentLayer.append(bot, cursorA, cursorB);
-    startTeleporting(bot, 0);
-    startTeleporting(cursorA, 3);
-    startTeleporting(cursorB, 6);
+    const bot1 = buildBot();
+    const bot2 = buildBot();
+    const cursor1 = buildCursor();
+    const cursor2 = buildCursor();
+    agentLayer.append(bot1, bot2, cursor1, cursor2);
+    startTeleporting(bot1, BOT_ANCHORS, 0);
+    startTeleporting(bot2, BOT_ANCHORS, 1);
+    startTeleporting(cursor1, CURSOR_ANCHORS, 0);
+    startTeleporting(cursor2, CURSOR_ANCHORS, 1);
 
     document.querySelectorAll(".process__icon").forEach((wrap) => {
       wrap.appendChild(buildProcessIcon(wrap.dataset.icon));
