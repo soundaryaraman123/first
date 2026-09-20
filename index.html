@@ -1,49 +1,709 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Build together</title>
-<link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <header class="nav">
-    <div class="nav__brand">Build together<span class="nav__dot"></span></div>
-    <nav class="nav__links">
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-      <a href="#pricing">Pricing</a>
-    </nav>
-    <button class="btn btn--outline">Start free trial</button>
-  </header>
+<title>Build Together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #17170f;
+    --muted: #6b6a60;
+    --yellow: #f5ce63;
+    --purple: #c7a2cf;
+    --pink: #f2aacb;
+    --pink-soft: #f6c9dc;
+    --green: #c9db6f;
+    --green-deep: #9fb648;
+    --sky: #eef8fc;
+    --sky-line: #d9edf6;
+    --dark: #242420;
+    --border: #e7e5dd;
+  }
 
-  <main class="hero">
-    <div class="hero__copy">
-      <span class="badge">Shared space for AI + humans</span>
-      <h1>The best of code was almost never written by one mind</h1>
-      <p class="hero__sub">
-        Build Together is a shared space where you, your team, and your AI agents plan,
-        build, review, and iterate — in the same room, on the same line, at the same time.
-      </p>
-      <button class="btn btn--primary">See it work</button>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, .display {
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  a { color: inherit; }
+
+  /* ---------------- Nav ---------------- */
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px clamp(20px, 4vw, 48px);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .nav__brand {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+
+  .nav__brand .dot {
+    width: 7px;
+    height: 19px;
+    background: var(--green-deep);
+    border-radius: 1px;
+  }
+
+  .nav__links {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .nav__links a {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+  }
+
+  .btn {
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn--outline {
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+
+  .btn--primary {
+    padding: 15px 24px;
+    background: var(--green-deep);
+    color: var(--paper);
+    font-size: 15px;
+  }
+
+  .btn--primary:hover { background: var(--ink); }
+
+  /* ---------------- Hero ---------------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(300px, 44%) 1fr;
+  }
+
+  .hero__copy {
+    padding: clamp(40px, 6vw, 76px) clamp(20px, 4vw, 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    justify-content: center;
+    max-width: 520px;
+  }
+
+  .badge {
+    align-self: flex-start;
+    background: var(--sky);
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .hero__copy h1 {
+    font-size: clamp(34px, 4.2vw, 47px);
+    line-height: 1.12;
+    margin: 0;
+  }
+
+  .hero__sub {
+    color: var(--muted);
+    font-size: 16.5px;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 46ch;
+  }
+
+  .hero__illustration {
+    position: relative;
+    overflow: hidden;
+    background: var(--sky);
+    min-height: 560px;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--sky-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--sky-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .vines, .flowers, .agents { position: absolute; inset: 0; }
+  .vines, .agents { pointer-events: none; }
+
+  .vine {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 16;
+    stroke-linecap: round;
+  }
+
+  /* ---------------- Flower ---------------- */
+
+  .flower { position: absolute; transform-origin: center; }
+  .flower__core { position: absolute; }
+
+  .px {
+    position: absolute;
+    width: var(--cell, 12px);
+    height: var(--cell, 12px);
+    border-radius: 1px;
+  }
+
+  .px--yellow { background: var(--yellow); }
+  .px--purple { background: var(--purple); }
+
+  .petal {
+    position: absolute;
+    width: var(--cell, 12px);
+    height: var(--cell, 12px);
+    background: var(--pink);
+    border-radius: 1px;
+    transition: left .18s ease, top .18s ease, opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .flower--outline .petal,
+  .flower--outline .px--yellow,
+  .flower--outline .px--purple {
+    background: transparent;
+    border: 2px solid var(--pink-soft);
+  }
+
+  .dust {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .85s cubic-bezier(.16,.84,.44,1), opacity .85s ease;
+  }
+
+  /* ---------------- Bot ---------------- */
+
+  .bot { position: absolute; width: 46px; height: 34px; transition: opacity .4s ease, left .05s linear, top .05s linear; }
+  .bot__roof { position: absolute; top: -8px; left: 10px; width: 26px; height: 10px; background: var(--dark); border: 2px solid #fff; }
+  .bot__body { position: absolute; top: 0; left: 0; width: 46px; height: 26px; background: var(--dark); border: 2px solid #fff; border-radius: 2px; box-shadow: 3px 4px 0 rgba(0,0,0,0.15); }
+  .bot__leg { position: absolute; bottom: -6px; width: 6px; height: 8px; background: var(--dark); border: 2px solid #fff; }
+  .bot__leg--l { left: 10px; }
+  .bot__leg--r { left: 28px; }
+  .bot__eye { position: absolute; top: 8px; width: 6px; height: 12px; background: #fff; transition: transform .35s ease-in-out; }
+  .bot__eye--l { left: 12px; }
+  .bot__eye--r { left: 26px; }
+  .bot__eye.blink { transform: scaleY(0.12) !important; transition: transform .09s ease; }
+
+  .cursor { position: absolute; transition: opacity .4s ease, left .05s linear, top .05s linear; }
+  .cursor__arrow { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 11px solid var(--dark); transform: rotate(-15deg); }
+  .cursor__label { margin-top: 2px; margin-left: 10px; background: var(--dark); border-radius: 4px; padding: 5px 10px; box-shadow: 2px 3px 0 rgba(0,0,0,0.12); }
+  .cursor__line { width: 34px; height: 4px; background: #cfcfcf; border-radius: 2px; }
+
+  /* ---------------- Supporting section ---------------- */
+
+  .process {
+    padding: clamp(48px, 7vw, 88px) clamp(20px, 4vw, 56px);
+    border-top: 1px solid var(--border);
+  }
+
+  .process__head {
+    max-width: 640px;
+    margin: 0 0 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .process__eyebrow {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green-deep);
+  }
+
+  .process__head h2 {
+    font-size: clamp(26px, 3vw, 34px);
+    margin: 0;
+  }
+
+  .process__head p {
+    color: var(--muted);
+    font-size: 15.5px;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 56ch;
+  }
+
+  .process__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .process__item {
+    background: var(--paper);
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .process__num {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .process__icon {
+    position: relative;
+    width: 60px;
+    height: 60px;
+  }
+
+  .process__icon .px { position: absolute; width: 10px; height: 10px; border-radius: 1px; }
+
+  .process__item h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 16.5px;
+    margin: 0;
+  }
+
+  .process__item p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  footer {
+    padding: 22px clamp(20px, 4vw, 56px) calc(22px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero__illustration { min-height: 420px; order: -1; }
+    .process__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 520px) {
+    .process__grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dust { display: none; }
+    .petal, .bot__eye, .bot, .cursor { transition: none; }
+  }
+</style>
+
+<nav class="nav">
+  <div class="nav__brand">Build together<span class="dot"></span></div>
+  <div class="nav__links">
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+    <a href="#">Pricing</a>
+  </div>
+  <button class="btn btn--outline">Start free trial</button>
+</nav>
+
+<header class="hero">
+  <div class="hero__copy">
+    <span class="badge">Shared space for AI + humans</span>
+    <h1>The best of code was almost never written by one mind</h1>
+    <p class="hero__sub">
+      Build Together is a shared space where you, your team, and your AI agents plan,
+      build, review, and iterate — in the same room, on the same line, at the same time.
+    </p>
+    <button class="btn btn--primary">See it work</button>
+  </div>
+
+  <div class="hero__illustration" id="illustration">
+    <div class="grid-bg"></div>
+    <svg class="vines" viewBox="0 0 900 900" preserveAspectRatio="none">
+      <path class="vine" d="M150,900 C150,760 230,740 210,650 C190,560 120,560 120,470" />
+      <path class="vine" d="M330,900 C330,780 400,760 380,660 C360,570 300,560 300,420" />
+      <path class="vine" d="M520,900 C520,770 460,740 480,640 C500,540 560,540 560,430" />
+      <path class="vine" d="M700,900 C700,760 640,730 660,630 C680,540 740,540 740,380" />
+      <path class="vine" d="M420,900 C440,820 500,800 470,720 C440,640 380,630 380,560" />
+      <path class="vine" d="M80,900 C60,840 40,820 70,780" />
+    </svg>
+    <div class="flowers"></div>
+    <div class="agents"></div>
+  </div>
+</header>
+
+<section class="process">
+  <div class="process__head">
+    <span class="process__eyebrow">How a build grows</span>
+    <h2>Every flower in the illustration is one build cycle</h2>
+    <p>
+      Each one is grown in the same four layers you see here — a seed of intent, a core
+      you shape, a layer you both check, and an outer ring that keeps shifting as you
+      and your agents keep working it.
+    </p>
+  </div>
+
+  <div class="process__grid">
+    <div class="process__item">
+      <span class="process__num">01</span>
+      <div class="process__icon" data-icon="plan"></div>
+      <h3>Plan</h3>
+      <p>Every build starts as a single seed — one intent, planted before anything is generated.</p>
     </div>
-
-    <div class="hero__illustration" id="illustration">
-      <div class="grid-bg"></div>
-      <svg class="vines" viewBox="0 0 900 900" preserveAspectRatio="none">
-        <path class="vine" d="M150,900 C150,760 230,740 210,650 C190,560 120,560 120,470" />
-        <path class="vine" d="M330,900 C330,780 400,760 380,660 C360,570 300,560 300,420" />
-        <path class="vine" d="M520,900 C520,770 460,740 480,640 C500,540 560,540 560,430" />
-        <path class="vine" d="M700,900 C700,760 640,730 660,630 C680,540 740,540 740,380" />
-        <path class="vine" d="M420,900 C440,820 500,800 470,720 C440,640 380,630 380,560" />
-        <path class="vine" d="M80,900 C60,840 40,820 70,780" />
-      </svg>
-
-      <div class="flowers"></div>
-      <div class="agents"></div>
+    <div class="process__item">
+      <span class="process__num">02</span>
+      <div class="process__icon" data-icon="build"></div>
+      <h3>Build</h3>
+      <p>You and your agents shape the solid core together, line by line.</p>
     </div>
-  </main>
+    <div class="process__item">
+      <span class="process__num">03</span>
+      <div class="process__icon" data-icon="review"></div>
+      <h3>Review</h3>
+      <p>A second layer of judgement closes around the core before it ships.</p>
+    </div>
+    <div class="process__item">
+      <span class="process__num">04</span>
+      <div class="process__icon" data-icon="iterate"></div>
+      <h3>Iterate</h3>
+      <p>The outer ring never fully settles — hover a flower and watch it keep working.</p>
+    </div>
+  </div>
+</section>
 
-  <script src="script.js"></script>
-</body>
-</html>
+<footer>
+  <span>Build together</span>
+  <span>A fictional HackerRank launch concept</span>
+</footer>
+
+<script>
+  const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // -------------------------------------------------------------------------
+  // Flower: 8 fixed ring "slots" on a 7x7 pixel grid. Petals only ever
+  // occupy these slots. On hover they rotate around the ring (sliding
+  // slot-to-slot); on mouse-leave they ease back to idle. They never
+  // appear outside the ring. Every flower keeps at least one empty slot
+  // so the rotation is visible.
+  // -------------------------------------------------------------------------
+
+  const CELL = 12;
+  const SLOT_ORDER = [
+    { row: 0, col: 3 }, { row: 1, col: 5 }, { row: 3, col: 6 }, { row: 5, col: 5 },
+    { row: 6, col: 3 }, { row: 5, col: 1 }, { row: 3, col: 0 }, { row: 1, col: 1 },
+  ];
+  const CORE_YELLOW = [[2,2],[2,3],[2,4],[3,2],[3,3],[3,4],[4,2],[4,3],[4,4]];
+  const CORE_PURPLE = [[1,2],[1,3],[1,4],[5,2],[5,3],[5,4],[2,1],[3,1],[4,1],[2,5],[3,5],[4,5]];
+
+  const FLOWER_CONFIGS = [
+    { left: "10%", top: "12%", scale: 1.15, core: "yellow-purple", active: [0,1,2,4,5,6,7] },
+    { left: "33%", top: "30%", scale: 0.8, core: "yellow-only", active: [0,2,4,6] },
+    { left: "72%", top: "8%", scale: 1.3, core: "yellow-purple", active: [0,1,2,4,5,6,7] },
+    { left: "55%", top: "42%", scale: 1.05, core: "yellow-purple", active: [0,1,3,4,5,6,7] },
+    { left: "6%", top: "62%", scale: 1.0, core: "outline", active: [0,1,2,3,4,6,7] },
+  ];
+
+  function cellPos(row, col) { return { left: col * CELL + "px", top: row * CELL + "px" }; }
+
+  function buildFlower(config) {
+    const el = document.createElement("div");
+    el.className = "flower" + (config.core === "outline" ? " flower--outline" : "");
+    el.style.left = config.left;
+    el.style.top = config.top;
+    el.style.width = 7 * CELL + "px";
+    el.style.height = 7 * CELL + "px";
+    el.style.transform = `scale(${config.scale})`;
+
+    const core = document.createElement("div");
+    core.className = "flower__core";
+
+    if (config.core !== "outline") {
+      CORE_YELLOW.forEach(([r, c]) => {
+        const px = document.createElement("div");
+        px.className = "px px--yellow";
+        Object.assign(px.style, cellPos(r, c));
+        core.appendChild(px);
+      });
+    }
+    if (config.core === "yellow-purple") {
+      CORE_PURPLE.forEach(([r, c]) => {
+        const px = document.createElement("div");
+        px.className = "px px--purple";
+        Object.assign(px.style, cellPos(r, c));
+        core.appendChild(px);
+      });
+    }
+    el.appendChild(core);
+
+    const petals = config.active.map((slotIndex) => {
+      const petal = document.createElement("div");
+      petal.className = "petal";
+      const { row, col } = SLOT_ORDER[slotIndex];
+      Object.assign(petal.style, cellPos(row, col));
+      el.appendChild(petal);
+      return { el: petal, slot: slotIndex };
+    });
+
+    let rotateTimer = null;
+    function applyPositions() {
+      petals.forEach((p) => Object.assign(p.el.style, cellPos(SLOT_ORDER[p.slot].row, SLOT_ORDER[p.slot].col)));
+    }
+
+    el.addEventListener("mouseenter", () => {
+      if (rotateTimer) return;
+      rotateTimer = setInterval(() => {
+        petals.forEach((p) => { p.slot = (p.slot + 1) % 8; });
+        applyPositions();
+      }, 170);
+    });
+
+    el.addEventListener("mouseleave", () => {
+      clearInterval(rotateTimer);
+      rotateTimer = null;
+      petals.forEach((p, i) => { p.slot = config.active[i]; });
+      applyPositions();
+    });
+
+    return { el, core, petals };
+  }
+
+  // -------------------------------------------------------------------------
+  // Generate-in: on load, each flower assembles from a scattered burst of
+  // dust rather than simply appearing — the AI's exploratory scatter
+  // settling into a considered, fixed structure.
+  // -------------------------------------------------------------------------
+
+  function spawnDust(el, count, scale) {
+    const colors = ["var(--yellow)", "var(--purple)", "var(--pink)"];
+    const dots = [];
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement("div");
+      dot.className = "dust";
+      const size = 4 + Math.random() * 5;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = (60 + Math.random() * 90) * scale;
+      const cx = 42 * scale, cy = 42 * scale;
+      dot.style.width = size + "px";
+      dot.style.height = size + "px";
+      dot.style.left = cx + "px";
+      dot.style.top = cy + "px";
+      dot.style.background = colors[i % colors.length];
+      dot.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
+      dot.style.opacity = "0.85";
+      el.appendChild(dot);
+      dots.push(dot);
+    }
+    return dots;
+  }
+
+  function playGenerateIn(flowerEl, coreEl, petalEls, delay) {
+    coreEl.style.opacity = "0";
+    petalEls.forEach((p) => { p.el.style.opacity = "0"; p.el.style.transform = "scale(1.6)"; });
+
+    if (REDUCE_MOTION) {
+      coreEl.style.opacity = "1";
+      petalEls.forEach((p) => { p.el.style.opacity = "1"; p.el.style.transform = "none"; });
+      return;
+    }
+
+    const scaleMatch = flowerEl.style.transform.match(/scale\(([\d.]+)\)/);
+    const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+    const dots = spawnDust(flowerEl, 16, 1 / scale);
+
+    setTimeout(() => {
+      dots.forEach((d) => {
+        d.style.transform = "translate(0, 0)";
+        d.style.opacity = "0";
+      });
+      coreEl.style.transition = "opacity .5s ease .1s";
+      coreEl.style.opacity = "1";
+      petalEls.forEach((p, i) => {
+        p.el.style.transition = "opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1)";
+        p.el.style.transitionDelay = (0.1 + i * 0.03) + "s";
+        p.el.style.opacity = "1";
+        p.el.style.transform = "scale(1)";
+      });
+      setTimeout(() => dots.forEach((d) => d.remove()), 900);
+    }, delay);
+  }
+
+  // -------------------------------------------------------------------------
+  // Bot: eyes look around within the body, and blink on their own timer.
+  // -------------------------------------------------------------------------
+
+  function buildBot() {
+    const bot = document.createElement("div");
+    bot.className = "bot";
+    bot.innerHTML = `
+      <div class="bot__roof"></div>
+      <div class="bot__body"></div>
+      <div class="bot__leg bot__leg--l"></div>
+      <div class="bot__leg bot__leg--r"></div>
+      <div class="bot__eye bot__eye--l"></div>
+      <div class="bot__eye bot__eye--r"></div>
+    `;
+    const eyes = bot.querySelectorAll(".bot__eye");
+    if (REDUCE_MOTION) return bot;
+
+    function look() {
+      const dx = (Math.random() * 6 - 3).toFixed(1);
+      const dy = (Math.random() * 3 - 1.5).toFixed(1);
+      eyes.forEach((eye) => { eye.style.transform = `translate(${dx}px, ${dy}px)`; });
+      setTimeout(look, 2000 + Math.random() * 1800);
+    }
+    function blink() {
+      eyes.forEach((eye) => eye.classList.add("blink"));
+      setTimeout(() => eyes.forEach((eye) => eye.classList.remove("blink")), 110);
+      setTimeout(blink, 3000 + Math.random() * 3000);
+    }
+    setTimeout(look, 600 + Math.random() * 800);
+    setTimeout(blink, 1500 + Math.random() * 2000);
+    return bot;
+  }
+
+  function buildCursor() {
+    const cursor = document.createElement("div");
+    cursor.className = "cursor";
+    cursor.innerHTML = `
+      <div class="cursor__arrow"></div>
+      <div class="cursor__label"><div class="cursor__line"></div></div>
+    `;
+    return cursor;
+  }
+
+  // -------------------------------------------------------------------------
+  // Agents teleport between anchor points scattered across the
+  // illustration: fade out, jump, fade back in.
+  // -------------------------------------------------------------------------
+
+  const ANCHORS = [
+    { x: "20%", y: "48%" }, { x: "38%", y: "58%" }, { x: "62%", y: "36%" },
+    { x: "80%", y: "58%" }, { x: "15%", y: "78%" }, { x: "48%", y: "78%" },
+    { x: "70%", y: "75%" }, { x: "30%", y: "18%" }, { x: "85%", y: "32%" },
+    { x: "55%", y: "65%" },
+  ];
+
+  function placeAt(el, anchor) { el.style.left = anchor.x; el.style.top = anchor.y; }
+
+  function startTeleporting(el, initialAnchorIndex) {
+    let current = initialAnchorIndex;
+    placeAt(el, ANCHORS[current]);
+    if (REDUCE_MOTION) return;
+
+    function cycle() {
+      el.style.opacity = "0";
+      setTimeout(() => {
+        let next = current;
+        while (next === current) next = Math.floor(Math.random() * ANCHORS.length);
+        current = next;
+        placeAt(el, ANCHORS[current]);
+        el.style.opacity = "1";
+      }, 420);
+      setTimeout(cycle, 3200 + Math.random() * 2600);
+    }
+    setTimeout(cycle, 1000 + Math.random() * 2000);
+  }
+
+  // -------------------------------------------------------------------------
+  // Process section icons: literally the flower's own four layers
+  // (seed / core / ring / petals), reused as the process glyphs.
+  // -------------------------------------------------------------------------
+
+  function buildProcessIcon(kind) {
+    const wrap = document.createElement("div");
+    const put = (r, c, color, size) => {
+      const px = document.createElement("div");
+      px.className = "px";
+      px.style.background = color;
+      px.style.left = c * 12 + "px";
+      px.style.top = r * 12 + "px";
+      if (size) { px.style.width = size + "px"; px.style.height = size + "px"; }
+      wrap.appendChild(px);
+    };
+    if (kind === "plan") {
+      put(2, 2, "var(--yellow)");
+    } else if (kind === "build") {
+      CORE_YELLOW.forEach(([r, c]) => put(r - 1, c - 1, "var(--yellow)"));
+    } else if (kind === "review") {
+      CORE_YELLOW.forEach(([r, c]) => put(r - 1, c - 1, "var(--yellow)"));
+      CORE_PURPLE.forEach(([r, c]) => put(r - 1, c - 1, "var(--purple)"));
+    } else if (kind === "iterate") {
+      SLOT_ORDER.forEach(({ row, col }) => put(row - 1, col - 1, "var(--pink)"));
+      put(3, 3, "var(--yellow)");
+    }
+    return wrap;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const flowerLayer = document.querySelector(".flowers");
+    FLOWER_CONFIGS.forEach((config, i) => {
+      const { el, core, petals } = buildFlower(config);
+      flowerLayer.appendChild(el);
+      playGenerateIn(el, core, petals, i * 150 + 150);
+    });
+
+    const agentLayer = document.querySelector(".agents");
+    const bot = buildBot();
+    const cursorA = buildCursor();
+    const cursorB = buildCursor();
+    agentLayer.append(bot, cursorA, cursorB);
+    startTeleporting(bot, 0);
+    startTeleporting(cursorA, 3);
+    startTeleporting(cursorB, 6);
+
+    document.querySelectorAll(".process__icon").forEach((wrap) => {
+      wrap.appendChild(buildProcessIcon(wrap.dataset.icon));
+    });
+  });
+</script>
