@@ -817,6 +817,42 @@
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 
+  let downloadsCapability;
+  async function getDownloadsCapability() {
+    if (downloadsCapability !== undefined) return downloadsCapability;
+    if (!(window.claude && typeof window.claude.use === 'function')) {
+      downloadsCapability = null;
+      return downloadsCapability;
+    }
+    try {
+      downloadsCapability = await window.claude.use('downloads');
+    } catch (e) {
+      downloadsCapability = null;
+    }
+    return downloadsCapability;
+  }
+
+  async function offerFile(filename, blob, btn) {
+    const downloads = await getDownloadsCapability();
+    if (downloads) {
+      try {
+        await downloads.save({ filename, data: blob });
+        return;
+      } catch (err) {
+        if (err && err.code === 'declined') return;
+        if (btn) {
+          const original = btn.textContent;
+          btn.textContent = 'Save unavailable';
+          setTimeout(() => { btn.textContent = original; }, 2000);
+        }
+        return;
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), 8000);
+  }
+
   function buildPatternButtons() {
     const wrap = document.getElementById('patternTypeButtons');
     wrap.innerHTML = '';
@@ -1031,21 +1067,15 @@
 
   // ---------------- export ----------------
 
-  document.getElementById('exportPng').addEventListener('click', () => {
+  document.getElementById('exportPng').addEventListener('click', e => {
     forceStaticRedraw();
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, 'motif-pattern.png');
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-    }, 'image/png');
+    canvas.toBlob(blob => { offerFile('motif-pattern.png', blob, e.currentTarget); }, 'image/png');
   });
 
-  document.getElementById('exportSvg').addEventListener('click', () => {
+  document.getElementById('exportSvg').addEventListener('click', e => {
     const svg = buildSvgMarkup();
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    triggerDownload(url, 'motif-pattern.svg');
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    offerFile('motif-pattern.svg', blob, e.currentTarget);
   });
 
   const recordBtn = document.getElementById('recordBtn');
@@ -1079,9 +1109,7 @@
     recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
     recorder.onstop = () => {
       const blob = new Blob(recChunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, 'motif-pattern-animation.webm');
-      setTimeout(() => URL.revokeObjectURL(url), 8000);
+      offerFile('motif-pattern-animation.webm', blob, recordBtn);
       recording = false;
       recordBtn.textContent = '● Record video (WebM)';
       recBadge.classList.remove('show');
