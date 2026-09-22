@@ -132,6 +132,22 @@
   .grad-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
   .grad-swatch { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
   .grad-swatch.active { border-color: var(--accent); }
+  .grad-swatch--custom {
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    border: 1.5px dashed var(--border); background: var(--paper) !important;
+  }
+  .grad-swatch--custom.active { border-style: solid; border-color: var(--accent); }
+
+  .stop-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .stop-row { display: flex; align-items: center; gap: 8px; }
+  .stop-row input[type="range"] { flex: 1; }
+  .stop-row .stop-pos { font-size: 11px; color: var(--muted); width: 32px; text-align: right; flex-shrink: 0; }
+  .stop-row .remove-stop-btn {
+    width: 22px; height: 22px; flex-shrink: 0; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--panel); color: var(--muted); cursor: pointer; font-size: 11px; line-height: 1; padding: 0;
+  }
+  .stop-row .remove-stop-btn:hover { border-color: var(--danger); color: var(--danger); }
+  .stop-row .remove-stop-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   .color-row { display: flex; gap: 8px; align-items: center; }
   input[type="color"] {
@@ -295,7 +311,20 @@
 
       <div id="bgGradientPanel">
         <div class="grad-presets" id="gradPresets"></div>
-        <div class="field">
+
+        <div id="customGradientPanel" style="display:none;">
+          <div id="customStopsList" class="stop-list"></div>
+          <button class="btn" id="addStopBtn" type="button">+ Add color stop</button>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <div class="field-label">Gradient shape</div>
+          <select id="gradientType">
+            <option value="linear">Linear</option>
+            <option value="radial">Radial</option>
+          </select>
+        </div>
+        <div class="field" id="bgAngleField">
           <div class="field-label">Angle <span class="val" id="val-bgAngle"></span></div>
           <input type="range" id="bgAngle" min="0" max="360" step="1">
         </div>
@@ -408,11 +437,14 @@
   const ctx = canvas.getContext('2d');
 
   const PATTERN_TYPES = [
-    { id: 'lines',  label: 'Lines',  icon: '▌▌▌' },
-    { id: 'dashes', label: 'Dashes', icon: '┊┊┊' },
-    { id: 'stacks', label: 'Stacks', icon: '☰' },
-    { id: 'grid',   label: 'Grid',   icon: '▦' },
-    { id: 'arcs',   label: 'Arcs',   icon: '◜◝' },
+    { id: 'lines',       label: 'Lines' },
+    { id: 'dashes',      label: 'Dashes' },
+    { id: 'stacks',      label: 'Stacks' },
+    { id: 'grid',        label: 'Grid' },
+    { id: 'arcs',        label: 'Arcs' },
+    { id: 'weave',       label: 'Weave' },
+    { id: 'herringbone', label: 'Herringbone' },
+    { id: 'rings',       label: 'Rings' },
   ];
 
   const COLOR_SWATCHES = [
@@ -450,12 +482,20 @@
     bg: {
       mode: 'gradient',
       presetIndex: 0,
+      gradientType: 'linear',
       angle: 120,
       blur: 28,
       image: null,
       animate: false,
       animType: 'drift',
       animSpeed: 6,
+      custom: {
+        stops: [
+          { pos: 0, color: '#6c5ce7' },
+          { pos: 0.55, color: '#ff6b9d' },
+          { pos: 1, color: '#ffd93d' },
+        ],
+      },
     },
     anim: {
       enabled: false,
@@ -485,6 +525,7 @@
   }
 
   function computeShapes(elapsed) {
+    if (state.patternType === 'rings') return computeRingShapes(elapsed);
     const cols = Math.max(1, state.shapesPerRow);
     const rows = Math.max(1, state.rows);
     const W = CANVAS_W, H = CANVAS_H;
@@ -574,7 +615,83 @@
           continue;
         }
 
+        if (state.patternType === 'weave') {
+          shapes.push({ kind, x: cx - w / 2, y: cy - h / 2, w, h, rotation });
+          continue;
+        }
+
+        if (state.patternType === 'herringbone') {
+          const length = cellW * 1.7;
+          const thickness = Math.max(2, baseShapeH * 0.28) * scale;
+          const dir = ((Math.abs(row) + Math.abs(col)) % 2 === 0) ? 1 : -1;
+          shapes.push({ kind, x: cx - length / 2, y: cy - thickness / 2, w: length, h: thickness, rotation: dir * (Math.PI / 4) + rotation });
+          continue;
+        }
+
         shapes.push({ kind, x: cx - w / 2, y: cy - h / 2, w, h, rotation, flip });
+      }
+    }
+
+    if (state.patternType === 'weave') {
+      const wavePhase2 = state.anim.enabled && state.anim.type === 'wave' ? elapsed * state.anim.speed * 0.8 : 0;
+      const kind = shapeKindFor(state.shapeType);
+      for (let row = 0; row < rows; row++) {
+        let mul = 1;
+        if (state.rowVariance === 'wave') mul = 1 + 0.35 * Math.sin(row * 0.8 + wavePhase2);
+        else if (state.rowVariance === 'random') mul = 0.55 + seededMul(row + 1) * 0.9;
+        else if (state.rowVariance === 'increasing') mul = 0.55 + (row / rows) * 0.9;
+
+        const thickness = Math.max(1, state.shapeHeight * mul * 0.35 - state.rowSpacing);
+        const cy = row * cellH + cellH / 2;
+        let rot = 0;
+        if (state.anim.enabled && state.anim.type === 'rotate') rot = elapsed * state.anim.speed * 0.12 + row * 0.06;
+        let hScale = 1;
+        if (state.anim.enabled && state.anim.type === 'pulse') {
+          hScale = 1 + 0.22 * Math.sin(elapsed * state.anim.speed * 0.7 + row * 0.18);
+        }
+        shapes.push({ kind, x: -40, y: cy - (thickness * hScale) / 2, w: W + 80, h: Math.max(1, thickness * hScale), rotation: rot });
+      }
+    }
+
+    return shapes;
+  }
+
+  function computeRingShapes(elapsed) {
+    const W = CANVAS_W, H = CANVAS_H, ccx = W / 2, ccy = H / 2;
+    const rings = Math.max(1, state.rows);
+    const segs = Math.max(3, state.shapesPerRow);
+    const maxR = Math.hypot(W, H) / 2;
+    const ringThickness = maxR / rings;
+    const anglePerSeg = (2 * Math.PI) / segs;
+    const gapFrac = Math.min(0.45, state.shapeSpacing / 60);
+    const wavePhase = state.anim.enabled && state.anim.type === 'wave' ? elapsed * state.anim.speed * 0.8 : 0;
+
+    let rot = 0;
+    if (state.anim.enabled && (state.anim.type === 'slide' || state.anim.type === 'rotate')) {
+      rot = elapsed * state.anim.speed * 0.5;
+    }
+
+    const shapes = [];
+    for (let ring = 0; ring < rings; ring++) {
+      let mul = 1;
+      if (state.rowVariance === 'wave') mul = 1 + 0.35 * Math.sin(ring * 0.8 + wavePhase);
+      else if (state.rowVariance === 'random') mul = 0.55 + seededMul(ring + 1) * 0.9;
+      else if (state.rowVariance === 'increasing') mul = 0.55 + (ring / rings) * 0.9;
+
+      let thickness = Math.max(3, Math.min(ringThickness - 2, state.shapeHeight * mul * 0.14 - state.rowSpacing * 0.3));
+      if (state.anim.enabled && state.anim.type === 'pulse') {
+        thickness = Math.max(2, thickness * (1 + 0.25 * Math.sin(elapsed * state.anim.speed * 0.7 + ring * 0.3)));
+      }
+      const innerBase = ring * ringThickness + (ringThickness - thickness) / 2;
+      const innerR = Math.max(0, innerBase);
+      const outerR = innerBase + thickness;
+
+      for (let seg = 0; seg < segs; seg++) {
+        if (state.alternating && ((ring + seg) % 2 === 1)) continue;
+        const a0 = seg * anglePerSeg + (anglePerSeg * gapFrac) / 2 + rot;
+        const a1 = (seg + 1) * anglePerSeg - (anglePerSeg * gapFrac) / 2 + rot;
+        if (a1 <= a0) continue;
+        shapes.push({ kind: 'ringseg', cx: ccx, cy: ccy, innerR, outerR, angleStart: a0, angleEnd: a1 });
       }
     }
     return shapes;
@@ -595,7 +712,7 @@
   }
 
   function drawShapeCanvas(c, s) {
-    if (!(s.w > 0) || !(s.h > 0)) return;
+    if (s.kind !== 'ringseg' && (!(s.w > 0) || !(s.h > 0))) return;
     c.save();
     if (s.rotation) {
       const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
@@ -639,6 +756,14 @@
         c.fill();
         break;
       }
+      case 'ringseg': {
+        c.beginPath();
+        c.arc(s.cx, s.cy, s.outerR, s.angleStart, s.angleEnd, false);
+        c.arc(s.cx, s.cy, s.innerR, s.angleEnd, s.angleStart, true);
+        c.closePath();
+        c.fill();
+        break;
+      }
     }
     c.restore();
   }
@@ -653,8 +778,15 @@
     c.restore();
   }
 
-  function currentGradientPreset() {
-    return GRADIENT_PRESETS[state.bg.presetIndex] || GRADIENT_PRESETS[0];
+  function currentGradientStops() {
+    if (state.bg.presetIndex === -1) {
+      return state.bg.custom.stops
+        .slice()
+        .sort((a, b) => a.pos - b.pos)
+        .map(s => [s.pos, s.color]);
+    }
+    const preset = GRADIENT_PRESETS[state.bg.presetIndex] || GRADIENT_PRESETS[0];
+    return preset.stops;
   }
 
   function drawBackground(c, elapsed) {
@@ -684,20 +816,32 @@
       }
       c.drawImage(img, dx, dy, dw, dh);
     } else {
-      const preset = currentGradientPreset();
-      let angle = state.bg.angle;
-      if (state.bg.animate && state.bg.animType === 'rotate') angle += elapsed * state.bg.animSpeed * 3;
-      const rad = (angle * Math.PI) / 180;
+      const stops = currentGradientStops();
       const cx = W / 2, cy = H / 2;
       const len = Math.sqrt(W * W + H * H) / 2 + pad;
-      const x0 = cx - Math.cos(rad) * len, y0 = cy - Math.sin(rad) * len;
-      const x1 = cx + Math.cos(rad) * len, y1 = cy + Math.sin(rad) * len;
-      const grad = c.createLinearGradient(x0, y0, x1, y1);
+      let grad;
+      if (state.bg.gradientType === 'radial') {
+        let rcx = cx, rcy = cy;
+        if (state.bg.animate && state.bg.animType === 'rotate') {
+          const orbitR = Math.min(W, H) * 0.15;
+          const a = elapsed * state.bg.animSpeed * 0.4;
+          rcx += Math.cos(a) * orbitR;
+          rcy += Math.sin(a) * orbitR;
+        }
+        grad = c.createRadialGradient(rcx, rcy, 0, rcx, rcy, len);
+      } else {
+        let angle = state.bg.angle;
+        if (state.bg.animate && state.bg.animType === 'rotate') angle += elapsed * state.bg.animSpeed * 3;
+        const rad = (angle * Math.PI) / 180;
+        const x0 = cx - Math.cos(rad) * len, y0 = cy - Math.sin(rad) * len;
+        const x1 = cx + Math.cos(rad) * len, y1 = cy + Math.sin(rad) * len;
+        grad = c.createLinearGradient(x0, y0, x1, y1);
+      }
       let shift = 0;
       if (state.bg.animate && state.bg.animType === 'drift') {
         shift = Math.sin(elapsed * state.bg.animSpeed * 0.2) * 0.12;
       }
-      preset.stops.forEach(([pos, color]) => {
+      stops.forEach(([pos, color]) => {
         const p = Math.min(1, Math.max(0, pos + shift));
         grad.addColorStop(p, color);
       });
@@ -765,6 +909,16 @@
         return `<clipPath id="${clipId}"><rect x="${s.x.toFixed(1)}" y="${s.y.toFixed(1)}" width="${s.w.toFixed(1)}" height="${s.h.toFixed(1)}"/></clipPath>` +
                `<circle cx="${ccx.toFixed(1)}" cy="${ccy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" clip-path="url(#${clipId})"/>`;
       }
+      case 'ringseg': {
+        const polar = (r, a) => [s.cx + r * Math.cos(a), s.cy + r * Math.sin(a)];
+        const [ox1, oy1] = polar(s.outerR, s.angleStart);
+        const [ox2, oy2] = polar(s.outerR, s.angleEnd);
+        const [ix2, iy2] = polar(s.innerR, s.angleEnd);
+        const [ix1, iy1] = polar(s.innerR, s.angleStart);
+        const largeArc = (s.angleEnd - s.angleStart) % (2 * Math.PI) > Math.PI ? 1 : 0;
+        const d = `M ${ox1.toFixed(1)} ${oy1.toFixed(1)} A ${s.outerR.toFixed(1)} ${s.outerR.toFixed(1)} 0 ${largeArc} 1 ${ox2.toFixed(1)} ${oy2.toFixed(1)} L ${ix2.toFixed(1)} ${iy2.toFixed(1)} A ${s.innerR.toFixed(1)} ${s.innerR.toFixed(1)} 0 ${largeArc} 0 ${ix1.toFixed(1)} ${iy1.toFixed(1)} Z`;
+        return `<path d="${d}" fill="${fill}"/>`;
+      }
       default: return '';
     }
   }
@@ -779,12 +933,16 @@
       const dataUrl = imageToDataUrl(state.bg.image);
       bgMarkup = `<image href="${dataUrl}" x="-40" y="-40" width="${W + 80}" height="${H + 80}" preserveAspectRatio="xMidYMid slice" filter="url(#blurFilter)"/>`;
     } else {
-      const preset = currentGradientPreset();
-      const rad = (state.bg.angle * Math.PI) / 180;
-      const x1 = (50 - Math.cos(rad) * 50).toFixed(1), y1 = (50 - Math.sin(rad) * 50).toFixed(1);
-      const x2 = (50 + Math.cos(rad) * 50).toFixed(1), y2 = (50 + Math.sin(rad) * 50).toFixed(1);
-      const stops = preset.stops.map(([pos, color]) => `<stop offset="${(pos * 100).toFixed(1)}%" stop-color="${color}"/>`).join('');
-      defsExtra += `<linearGradient id="bgGrad" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">${stops}</linearGradient>`;
+      const stopsArr = currentGradientStops();
+      const stopsMarkup = stopsArr.map(([pos, color]) => `<stop offset="${(pos * 100).toFixed(1)}%" stop-color="${color}"/>`).join('');
+      if (state.bg.gradientType === 'radial') {
+        defsExtra += `<radialGradient id="bgGrad" cx="50%" cy="50%" r="75%">${stopsMarkup}</radialGradient>`;
+      } else {
+        const rad = (state.bg.angle * Math.PI) / 180;
+        const x1 = (50 - Math.cos(rad) * 50).toFixed(1), y1 = (50 - Math.sin(rad) * 50).toFixed(1);
+        const x2 = (50 + Math.cos(rad) * 50).toFixed(1), y2 = (50 + Math.sin(rad) * 50).toFixed(1);
+        defsExtra += `<linearGradient id="bgGrad" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">${stopsMarkup}</linearGradient>`;
+      }
       bgMarkup = `<rect x="-40" y="-40" width="${W + 80}" height="${H + 80}" fill="url(#bgGrad)" filter="url(#blurFilter)"/>`;
     }
     const shapeMarkup = shapes.map(s => svgShapeMarkup(s, state.color)).join('');
@@ -896,11 +1054,97 @@
         state.bg.angle = p.angle;
         document.getElementById('bgAngle').value = p.angle;
         document.getElementById('val-bgAngle').textContent = p.angle + '°';
+        document.getElementById('customGradientPanel').style.display = 'none';
         buildGradPresets();
         forceStaticRedraw(); requestRender();
       };
       wrap.appendChild(el);
     });
+
+    const customTile = document.createElement('div');
+    customTile.className = 'grad-swatch grad-swatch--custom' + (state.bg.presetIndex === -1 ? ' active' : '');
+    customTile.title = 'Custom gradient';
+    const customStopsCss = state.bg.custom.stops.slice().sort((a, b) => a.pos - b.pos).map(s => `${s.color} ${s.pos * 100}%`).join(', ');
+    customTile.style.background = `linear-gradient(135deg, ${customStopsCss})`;
+    customTile.textContent = '✎';
+    customTile.onclick = () => {
+      state.bg.presetIndex = -1;
+      document.getElementById('customGradientPanel').style.display = 'block';
+      buildGradPresets();
+      forceStaticRedraw(); requestRender();
+    };
+    wrap.appendChild(customTile);
+  }
+
+  function buildCustomStopsUI() {
+    const wrap = document.getElementById('customStopsList');
+    wrap.innerHTML = '';
+    state.bg.custom.stops.forEach((stop, i) => {
+      const row = document.createElement('div');
+      row.className = 'stop-row';
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = stop.color;
+
+      const rangeInput = document.createElement('input');
+      rangeInput.type = 'range';
+      rangeInput.min = 0; rangeInput.max = 100; rangeInput.value = Math.round(stop.pos * 100);
+
+      const posLabel = document.createElement('span');
+      posLabel.className = 'stop-pos';
+      posLabel.textContent = Math.round(stop.pos * 100) + '%';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'remove-stop-btn';
+      removeBtn.textContent = '✕';
+      removeBtn.disabled = state.bg.custom.stops.length <= 2;
+
+      colorInput.addEventListener('input', () => { stop.color = colorInput.value; onCustomGradientChange(false); });
+      rangeInput.addEventListener('input', () => {
+        stop.pos = Number(rangeInput.value) / 100;
+        posLabel.textContent = rangeInput.value + '%';
+        onCustomGradientChange(false);
+      });
+      removeBtn.addEventListener('click', () => {
+        if (state.bg.custom.stops.length <= 2) return;
+        state.bg.custom.stops.splice(i, 1);
+        buildCustomStopsUI();
+        onCustomGradientChange(true);
+      });
+
+      row.appendChild(colorInput);
+      row.appendChild(rangeInput);
+      row.appendChild(posLabel);
+      row.appendChild(removeBtn);
+      wrap.appendChild(row);
+    });
+  }
+
+  function onCustomGradientChange(refreshSwatch) {
+    state.bg.presetIndex = -1;
+    if (refreshSwatch) buildGradPresets();
+    else {
+      const tile = document.querySelector('.grad-swatch--custom');
+      if (tile) {
+        const css = state.bg.custom.stops.slice().sort((a, b) => a.pos - b.pos).map(s => `${s.color} ${s.pos * 100}%`).join(', ');
+        tile.style.background = `linear-gradient(135deg, ${css})`;
+      }
+    }
+    forceStaticRedraw(); requestRender();
+  }
+
+  function addGradientStop() {
+    const stops = state.bg.custom.stops.slice().sort((a, b) => a.pos - b.pos);
+    let bestGap = -1, bestMid = 0.5, bestColor = '#ffffff';
+    for (let i = 0; i < stops.length - 1; i++) {
+      const gap = stops[i + 1].pos - stops[i].pos;
+      if (gap > bestGap) { bestGap = gap; bestMid = (stops[i].pos + stops[i + 1].pos) / 2; bestColor = stops[i].color; }
+    }
+    state.bg.custom.stops.push({ pos: bestMid, color: bestColor });
+    buildCustomStopsUI();
+    onCustomGradientChange(true);
   }
 
   function syncControlsFromState() {
@@ -927,8 +1171,12 @@
     document.getElementById('animType').value = state.anim.type;
     document.getElementById('animDirection').value = state.anim.direction;
     setRange('animSpeed', state.anim.speed, v => v);
+    document.getElementById('gradientType').value = state.bg.gradientType;
+    document.getElementById('bgAngleField').style.display = state.bg.gradientType === 'radial' ? 'none' : 'block';
+    document.getElementById('customGradientPanel').style.display = state.bg.presetIndex === -1 ? 'block' : 'none';
     buildPatternButtons();
     buildColorSwatches();
+    buildCustomStopsUI();
     buildGradPresets();
   }
 
@@ -965,6 +1213,12 @@
   document.getElementById('rowVariance').addEventListener('change', e => { state.rowVariance = e.target.value; forceStaticRedraw(); requestRender(); });
   document.getElementById('blendMode').addEventListener('change', e => { state.blendMode = e.target.value; forceStaticRedraw(); requestRender(); });
   document.getElementById('bgAnimType').addEventListener('change', e => { state.bg.animType = e.target.value; forceStaticRedraw(); requestRender(); });
+  document.getElementById('gradientType').addEventListener('change', e => {
+    state.bg.gradientType = e.target.value;
+    document.getElementById('bgAngleField').style.display = e.target.value === 'radial' ? 'none' : 'block';
+    forceStaticRedraw(); requestRender();
+  });
+  document.getElementById('addStopBtn').addEventListener('click', addGradientStop);
   document.getElementById('animType').addEventListener('change', e => {
     state.anim.type = e.target.value;
     document.getElementById('animDirectionField').style.display = e.target.value === 'slide' ? 'block' : 'none';
@@ -1035,7 +1289,11 @@
       rows: 6, rowSpacing: 10, alternating: false, flipVertical: false, flipAlternate: false,
       horizontalOffset: false, rowVariance: 'none', color: '#e9eefc', opacity: 88, blendMode: 'overlay',
     });
-    state.bg = { mode: 'gradient', presetIndex: 0, angle: 120, blur: 28, image: null, animate: false, animType: 'drift', animSpeed: 6 };
+    state.bg = {
+      mode: 'gradient', presetIndex: 0, gradientType: 'linear', angle: 120, blur: 28, image: null,
+      animate: false, animType: 'drift', animSpeed: 6,
+      custom: { stops: [{ pos: 0, color: '#6c5ce7' }, { pos: 0.55, color: '#ff6b9d' }, { pos: 1, color: '#ffd93d' }] },
+    };
     state.anim = { enabled: false, type: 'slide', direction: 'horizontal', speed: 8 };
     document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.toggle('active', t.dataset.bgmode === 'gradient'));
     document.getElementById('bgGradientPanel').style.display = 'block';
@@ -1061,6 +1319,7 @@
     state.blendMode = pick(['normal', 'multiply', 'overlay', 'screen', 'soft-light']);
     state.bg.presetIndex = Math.floor(Math.random() * GRADIENT_PRESETS.length);
     state.bg.angle = GRADIENT_PRESETS[state.bg.presetIndex].angle;
+    state.bg.gradientType = Math.random() > 0.75 ? 'radial' : 'linear';
     syncControlsFromState();
     forceStaticRedraw(); requestRender();
   });
