@@ -19,6 +19,16 @@
     --danger: #e0446a;
     --radius: 10px;
   }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14151c; --panel: #1c1d26; --ink: #f0f0f5; --muted: #9a9aa8;
+      --border: #303240; --accent: #7c93ff; --accent-ink: #14151c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14151c; --panel: #1c1d26; --ink: #f0f0f5; --muted: #9a9aa8;
+    --border: #303240; --accent: #7c93ff; --accent-ink: #14151c;
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -59,7 +69,7 @@
   .chip {
     display: flex; align-items: center; gap: 6px; justify-content: center;
     padding: 9px 8px; border-radius: 8px; border: 1.5px solid var(--border);
-    background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    background: var(--panel); cursor: pointer; font-size: 12.5px; font-weight: 600;
     font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink); transition: border-color .12s, background .12s;
     user-select: none;
   }
@@ -88,7 +98,7 @@
 
   select, .text-input {
     width: 100%; padding: 9px 10px; border-radius: 8px; border: 1.5px solid var(--border);
-    font-family: "Inter", sans-serif; font-size: 13px; background: #fff; color: var(--ink); cursor: pointer;
+    font-family: "Inter", sans-serif; font-size: 13px; background: var(--panel); color: var(--ink); cursor: pointer;
   }
 
   .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
@@ -117,7 +127,7 @@
     flex: 1; text-align: center; padding: 7px 4px; border-radius: 7px; font-size: 12.5px; font-weight: 700;
     font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; color: var(--muted);
   }
-  .tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .tab.active { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 
   .grad-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
   .grad-swatch { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
@@ -125,14 +135,14 @@
 
   .color-row { display: flex; gap: 8px; align-items: center; }
   input[type="color"] {
-    width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 8px; padding: 2px; cursor: pointer; background: #fff;
+    width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 8px; padding: 2px; cursor: pointer; background: var(--panel);
   }
 
   .btn {
     border-radius: 9px; border: 1.5px solid var(--border); cursor: pointer;
     font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 13px;
     display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 10px 14px; background: #fff; color: var(--ink); width: 100%;
+    padding: 10px 14px; background: var(--panel); color: var(--ink); width: 100%;
   }
   .btn:hover { border-color: #c7cdf5; }
   .btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
