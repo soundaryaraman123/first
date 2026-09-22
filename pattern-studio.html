@@ -116,6 +116,7 @@
   .switch input:checked + .slider-toggle::before { transform: translateX(16px); }
 
   .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+  .swatches--wide { grid-template-columns: repeat(8, 1fr); margin-top: 0; margin-bottom: 12px; }
   .swatch {
     width: 100%; aspect-ratio: 1; border-radius: 7px; cursor: pointer; border: 2px solid transparent;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
@@ -139,7 +140,8 @@
   .grad-swatch--custom.active { border-style: solid; border-color: var(--accent); }
 
   .stop-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-  .stop-row { display: flex; align-items: center; gap: 8px; }
+  .stop-row { display: flex; align-items: center; gap: 8px; padding: 4px; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; }
+  .stop-row.active { border-color: var(--accent); background: #eef1ff; }
   .stop-row input[type="range"] { flex: 1; }
   .stop-row .stop-pos { font-size: 11px; color: var(--muted); width: 32px; text-align: right; flex-shrink: 0; }
   .stop-row .remove-stop-btn {
@@ -229,6 +231,10 @@
           <option value="pill">Pill</option>
           <option value="circle">Circle</option>
           <option value="diamond">Diamond</option>
+          <option value="triangle">Triangle</option>
+          <option value="hexagon">Hexagon</option>
+          <option value="star">Star</option>
+          <option value="cross">Cross</option>
         </select>
       </div>
       <div class="field">
@@ -314,7 +320,9 @@
 
         <div id="customGradientPanel" style="display:none;">
           <div id="customStopsList" class="stop-list"></div>
-          <button class="btn" id="addStopBtn" type="button">+ Add color stop</button>
+          <div class="field-label" style="margin-bottom:6px;">Quick colors for <span class="val" id="activeStopLabel">stop 1</span></div>
+          <div class="swatches swatches--wide" id="gradientSwatches"></div>
+          <button class="btn" id="addStopBtn" type="button" style="margin-top:10px;">+ Add color stop</button>
         </div>
 
         <div class="field" style="margin-top:12px;">
@@ -452,6 +460,12 @@
     '#f2a6c9', '#c23d73', '#f7b955', '#9a5a12', '#e7e7ee', '#17170f',
   ];
 
+  const GRADIENT_SWATCHES = [
+    '#ffffff', '#f5f0e6', '#ffd93d', '#f7b955', '#ff8a5b', '#ff6b6b', '#f2a6c9', '#ff6b9d',
+    '#e0446a', '#a06cd5', '#6c5ce7', '#4c2a7a', '#4f6df5', '#2f6fed', '#1e3a8a', '#0b1026',
+    '#2fb8a3', '#00c2a8', '#0f5c52', '#5c8a5a', '#1f3d2b', '#7ea6e0', '#243b6b', '#17170f',
+  ];
+
   const GRADIENT_PRESETS = [
     { name: 'Sunset Dune',  angle: 120, stops: [[0,'#5b8def'],[0.45,'#f2a6c9'],[0.72,'#f7b955'],[1,'#1e3a6e']] },
     { name: 'Dusk Violet',  angle: 135, stops: [[0,'#241a4a'],[0.5,'#a06cd5'],[1,'#f2a6c9']] },
@@ -512,6 +526,7 @@
   let recording = false;
   let recorder = null;
   let recChunks = [];
+  let activeGradientStopIndex = 0;
 
   // ---------------- geometry ----------------
 
@@ -697,7 +712,55 @@
     return shapes;
   }
 
+  // ---------------- polygon geometry (shared by canvas + SVG) ----------------
+
+  function trianglePoints(s) {
+    return [[s.x + s.w / 2, s.y], [s.x + s.w, s.y + s.h], [s.x, s.y + s.h]];
+  }
+
+  function hexagonPoints(s) {
+    const cx = s.x + s.w / 2, cy = s.y + s.h / 2, r = Math.min(s.w, s.h) / 2;
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 3;
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+    }
+    return pts;
+  }
+
+  function starPoints(s) {
+    const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+    const outerR = Math.min(s.w, s.h) / 2;
+    const innerR = outerR * 0.46;
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 === 0 ? outerR : innerR;
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+    }
+    return pts;
+  }
+
+  function crossPoints(s) {
+    const aw = s.w / 3, ah = s.h / 3;
+    const x = s.x, y = s.y, w = s.w, h = s.h;
+    return [
+      [x + aw, y], [x + w - aw, y], [x + w - aw, y + ah], [x + w, y + ah],
+      [x + w, y + h - ah], [x + w - aw, y + h - ah], [x + w - aw, y + h], [x + aw, y + h],
+      [x + aw, y + h - ah], [x, y + h - ah], [x, y + ah], [x + aw, y + ah],
+    ];
+  }
+
+  const POLYGON_SHAPES = { triangle: trianglePoints, hexagon: hexagonPoints, star: starPoints, cross: crossPoints };
+
   // ---------------- canvas drawing ----------------
+
+  function polygonPathCanvas(c, pts) {
+    c.beginPath();
+    c.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+    c.closePath();
+  }
 
   function pillPath(c, x, y, w, h) {
     const r = Math.min(Math.abs(w), Math.abs(h)) / 2;
@@ -742,6 +805,13 @@
         c.lineTo(s.x + s.w / 2, s.y + s.h);
         c.lineTo(s.x, s.y + s.h / 2);
         c.closePath();
+        c.fill();
+        break;
+      case 'triangle':
+      case 'hexagon':
+      case 'star':
+      case 'cross':
+        polygonPathCanvas(c, POLYGON_SHAPES[s.kind](s));
         c.fill();
         break;
       case 'arc': {
@@ -899,6 +969,13 @@
       }
       case 'diamond': {
         const pts = `${(s.x + s.w / 2).toFixed(1)},${s.y.toFixed(1)} ${(s.x + s.w).toFixed(1)},${(s.y + s.h / 2).toFixed(1)} ${(s.x + s.w / 2).toFixed(1)},${(s.y + s.h).toFixed(1)} ${s.x.toFixed(1)},${(s.y + s.h / 2).toFixed(1)}`;
+        return `<polygon points="${pts}" fill="${fill}"${rot}/>`;
+      }
+      case 'triangle':
+      case 'hexagon':
+      case 'star':
+      case 'cross': {
+        const pts = POLYGON_SHAPES[s.kind](s).map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
         return `<polygon points="${pts}" fill="${fill}"${rot}/>`;
       }
       case 'arc': {
@@ -1079,17 +1156,18 @@
   function buildCustomStopsUI() {
     const wrap = document.getElementById('customStopsList');
     wrap.innerHTML = '';
+    if (activeGradientStopIndex >= state.bg.custom.stops.length) activeGradientStopIndex = 0;
+
     state.bg.custom.stops.forEach((stop, i) => {
       const row = document.createElement('div');
-      row.className = 'stop-row';
+      row.className = 'stop-row' + (i === activeGradientStopIndex ? ' active' : '');
 
       const colorInput = document.createElement('input');
       colorInput.type = 'color';
       colorInput.value = stop.color;
 
       const rangeInput = document.createElement('input');
-      rangeInput.type = 'range';
-      rangeInput.min = 0; rangeInput.max = 100; rangeInput.value = Math.round(stop.pos * 100);
+      rangeInput.min = 0; rangeInput.max = 100; rangeInput.type = 'range'; rangeInput.value = Math.round(stop.pos * 100);
 
       const posLabel = document.createElement('span');
       posLabel.className = 'stop-pos';
@@ -1101,15 +1179,25 @@
       removeBtn.textContent = '✕';
       removeBtn.disabled = state.bg.custom.stops.length <= 2;
 
-      colorInput.addEventListener('input', () => { stop.color = colorInput.value; onCustomGradientChange(false); });
+      const selectThisStop = () => {
+        activeGradientStopIndex = i;
+        document.getElementById('activeStopLabel').textContent = 'stop ' + (i + 1);
+        Array.from(wrap.children).forEach((r, ri) => r.classList.toggle('active', ri === i));
+      };
+
+      row.addEventListener('click', selectThisStop);
+      colorInput.addEventListener('input', () => { stop.color = colorInput.value; selectThisStop(); onCustomGradientChange(false); });
       rangeInput.addEventListener('input', () => {
         stop.pos = Number(rangeInput.value) / 100;
         posLabel.textContent = rangeInput.value + '%';
+        selectThisStop();
         onCustomGradientChange(false);
       });
-      removeBtn.addEventListener('click', () => {
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
         if (state.bg.custom.stops.length <= 2) return;
         state.bg.custom.stops.splice(i, 1);
+        activeGradientStopIndex = Math.max(0, activeGradientStopIndex - (i <= activeGradientStopIndex ? 1 : 0));
         buildCustomStopsUI();
         onCustomGradientChange(true);
       });
@@ -1119,6 +1207,29 @@
       row.appendChild(posLabel);
       row.appendChild(removeBtn);
       wrap.appendChild(row);
+    });
+
+    document.getElementById('activeStopLabel').textContent = 'stop ' + (activeGradientStopIndex + 1);
+    buildGradientSwatches();
+  }
+
+  function buildGradientSwatches() {
+    const wrap = document.getElementById('gradientSwatches');
+    wrap.innerHTML = '';
+    GRADIENT_SWATCHES.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch';
+      sw.style.background = c;
+      sw.title = c;
+      sw.onclick = () => {
+        const stop = state.bg.custom.stops[activeGradientStopIndex];
+        if (!stop) return;
+        stop.color = c;
+        const row = document.getElementById('customStopsList').children[activeGradientStopIndex];
+        if (row) row.querySelector('input[type=color]').value = c;
+        onCustomGradientChange(false);
+      };
+      wrap.appendChild(sw);
     });
   }
 
@@ -1143,6 +1254,7 @@
       if (gap > bestGap) { bestGap = gap; bestMid = (stops[i].pos + stops[i + 1].pos) / 2; bestColor = stops[i].color; }
     }
     state.bg.custom.stops.push({ pos: bestMid, color: bestColor });
+    activeGradientStopIndex = state.bg.custom.stops.length - 1;
     buildCustomStopsUI();
     onCustomGradientChange(true);
   }
@@ -1305,7 +1417,7 @@
   document.getElementById('randomizeBtn').addEventListener('click', () => {
     const pick = arr => arr[Math.floor(Math.random() * arr.length)];
     state.patternType = pick(PATTERN_TYPES.map(p => p.id));
-    state.shapeType = pick(['rect', 'pill', 'circle', 'diamond']);
+    state.shapeType = pick(['rect', 'pill', 'circle', 'diamond', 'triangle', 'hexagon', 'star', 'cross']);
     state.shapesPerRow = 10 + Math.floor(Math.random() * 50);
     state.shapeHeight = 30 + Math.floor(Math.random() * 300);
     state.shapeSpacing = Math.floor(Math.random() * 30);
