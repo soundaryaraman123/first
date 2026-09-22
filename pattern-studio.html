@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motif — Pattern Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --panel: #ffffff;
+    --ink: #17170f;
+    --muted: #6b6a75;
+    --border: #e4e4ea;
+    --accent: #4f6df5;
+    --accent-ink: #ffffff;
+    --danger: #e0446a;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, .display { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 22px 20px 100px;
+    overflow-y: auto;
+    max-height: 100vh;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; margin-bottom: 2px; }
+  .brand .logo {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(135deg,#5b8def,#f2a6c9 55%,#f7b955);
+  }
+  .brand h1 { font-size: 19px; margin: 0; }
+  .brand-sub { font-size: 11.5px; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; margin: 2px 0 18px; }
+
+  .section { border-top: 1px solid var(--border); padding: 16px 0; }
+  .section:first-of-type { border-top: none; padding-top: 0; }
+  .section-title {
+    font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px;
+  }
+
+  .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .chip {
+    display: flex; align-items: center; gap: 6px; justify-content: center;
+    padding: 9px 8px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 600;
+    font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink); transition: border-color .12s, background .12s;
+    user-select: none;
+  }
+  .chip:hover { border-color: #c7cdf5; }
+  .chip.active { border-color: var(--accent); background: #eef1ff; color: #3a52d1; }
+
+  .field { margin-bottom: 14px; }
+  .field-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 6px; font-weight: 600;
+  }
+  .field-label span.val { color: var(--ink); font-weight: 700; text-transform: none; letter-spacing: 0; }
+
+  input[type="range"] {
+    width: 100%; -webkit-appearance: none; height: 4px; border-radius: 4px;
+    background: var(--border); outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--ink); cursor: pointer; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--ink);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--ink); cursor: pointer; border: 3px solid #fff;
+  }
+
+  select, .text-input {
+    width: 100%; padding: 9px 10px; border-radius: 8px; border: 1.5px solid var(--border);
+    font-family: "Inter", sans-serif; font-size: 13px; background: #fff; color: var(--ink); cursor: pointer;
+  }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .toggle-row .field-label { margin: 0; }
+  .switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-toggle {
+    position: absolute; inset: 0; background: #d8d9e2; border-radius: 22px; cursor: pointer; transition: .15s;
+  }
+  .slider-toggle::before {
+    content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff;
+    border-radius: 50%; transition: .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  }
+  .switch input:checked + .slider-toggle { background: var(--ink); }
+  .switch input:checked + .slider-toggle::before { transform: translateX(16px); }
+
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+  .swatch {
+    width: 100%; aspect-ratio: 1; border-radius: 7px; cursor: pointer; border: 2px solid transparent;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  }
+  .swatch.active { border-color: var(--ink); }
+
+  .tabs { display: flex; gap: 4px; background: #eef0f4; padding: 3px; border-radius: 9px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; text-align: center; padding: 7px 4px; border-radius: 7px; font-size: 12.5px; font-weight: 700;
+    font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; color: var(--muted);
+  }
+  .tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  .grad-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
+  .grad-swatch { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
+  .grad-swatch.active { border-color: var(--accent); }
+
+  .color-row { display: flex; gap: 8px; align-items: center; }
+  input[type="color"] {
+    width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 8px; padding: 2px; cursor: pointer; background: #fff;
+  }
+
+  .btn {
+    border-radius: 9px; border: 1.5px solid var(--border); cursor: pointer;
+    font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 14px; background: #fff; color: var(--ink); width: 100%;
+  }
+  .btn:hover { border-color: #c7cdf5; }
+  .btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn--primary:hover { background: #3f5ce0; }
+  .btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn-row { display: flex; gap: 8px; }
+  .upload-label {
+    display: block; text-align: center; padding: 14px; border: 1.5px dashed var(--border); border-radius: 9px;
+    font-size: 12.5px; color: var(--muted); cursor: pointer; font-weight: 600;
+  }
+  .upload-label:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hint { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
+
+  /* ---------- Stage ---------- */
+  .stage-wrap {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px; gap: 18px; position: relative;
+  }
+  .canvas-frame {
+    border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(20,20,40,.18), 0 2px 8px rgba(20,20,40,.08);
+    max-width: 100%; width: fit-content; position: relative; line-height: 0;
+  }
+  canvas#stage { width: min(920px, 82vw); height: auto; display: block; background: #000; }
+
+  .rec-badge {
+    position: absolute; top: 14px; left: 14px; background: rgba(20,20,20,.75); color: #fff;
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; font-family: "Plus Jakarta Sans", sans-serif;
+    display: none; align-items: center; gap: 7px;
+  }
+  .rec-badge.show { display: inline-flex; }
+  .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d5e; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  .stage-toolbar {
+    display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(20,20,40,.06); flex-wrap: wrap; justify-content: center;
+  }
+  .stage-toolbar .btn { width: auto; padding: 9px 16px; }
+
+  @media (max-width: 860px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+      <h1>Motif</h1>
+    </div>
+    <p class="brand-sub">Pattern studio — for gradients &amp; photos</p>
+
+    <div class="section">
+      <p class="section-title">Pattern</p>
+      <div class="grid-btns" id="patternTypeButtons"></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Shape</p>
+      <div class="field">
+        <div class="field-label">Shape type</div>
+        <select id="shapeType">
+          <option value="rect">Rectangle</option>
+          <option value="pill">Pill</option>
+          <option value="circle">Circle</option>
+          <option value="diamond">Diamond</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Shapes per row <span class="val" id="val-shapesPerRow"></span></div>
+        <input type="range" id="shapesPerRow" min="2" max="80" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Shape height <span class="val" id="val-shapeHeight"></span></div>
+        <input type="range" id="shapeHeight" min="4" max="520" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Shape spacing <span class="val" id="val-shapeSpacing"></span></div>
+        <input type="range" id="shapeSpacing" min="0" max="60" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Number of rows <span class="val" id="val-rows"></span></div>
+        <input type="range" id="rows" min="1" max="24" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Row spacing <span class="val" id="val-rowSpacing"></span></div>
+        <input type="range" id="rowSpacing" min="0" max="60" step="1">
+      </div>
+      <div class="toggle-row">
+        <div class="field-label">Alternating pattern</div>
+        <label class="switch"><input type="checkbox" id="alternating"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="field-label">Flip vertically</div>
+        <label class="switch"><input type="checkbox" id="flipVertical"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="field-label">Flip every other</div>
+        <label class="switch"><input type="checkbox" id="flipAlternate"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="field-label">Horizontal offset</div>
+        <label class="switch"><input type="checkbox" id="horizontalOffset"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <div class="field-label">Row height variance</div>
+        <select id="rowVariance">
+          <option value="none">None</option>
+          <option value="wave">Wave</option>
+          <option value="random">Random</option>
+          <option value="increasing">Increasing</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Color</p>
+      <div class="color-row">
+        <input type="color" id="colorPicker">
+        <span class="hint" style="margin:0;">Pick any color, or choose a swatch below.</span>
+      </div>
+      <div class="swatches" id="colorSwatches"></div>
+      <div class="field" style="margin-top:12px;">
+        <div class="field-label">Opacity <span class="val" id="val-opacity"></span></div>
+        <input type="range" id="opacity" min="5" max="100" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Blend mode</div>
+        <select id="blendMode">
+          <option value="normal">Normal</option>
+          <option value="multiply">Multiply</option>
+          <option value="overlay">Overlay</option>
+          <option value="screen">Screen</option>
+          <option value="soft-light">Soft Light</option>
+          <option value="color-dodge">Color Dodge</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Background</p>
+      <div class="tabs">
+        <div class="tab active" data-bgmode="gradient">Gradient</div>
+        <div class="tab" data-bgmode="image">Image</div>
+      </div>
+
+      <div id="bgGradientPanel">
+        <div class="grad-presets" id="gradPresets"></div>
+        <div class="field">
+          <div class="field-label">Angle <span class="val" id="val-bgAngle"></span></div>
+          <input type="range" id="bgAngle" min="0" max="360" step="1">
+        </div>
+      </div>
+
+      <div id="bgImagePanel" style="display:none;">
+        <label class="upload-label" for="imageUpload">📷 Click to upload an image</label>
+        <input type="file" id="imageUpload" accept="image/*" style="display:none;">
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn" id="removeImageBtn">Remove image</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <div class="field-label">Blur <span class="val" id="val-bgBlur"></span></div>
+        <input type="range" id="bgBlur" min="0" max="80" step="1">
+      </div>
+
+      <div class="toggle-row">
+        <div class="field-label">Animate background</div>
+        <label class="switch"><input type="checkbox" id="bgAnimate"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="field" id="bgAnimTypeField">
+        <div class="field-label">Motion type</div>
+        <select id="bgAnimType">
+          <option value="drift">Drift</option>
+          <option value="rotate">Rotate</option>
+          <option value="pulse">Pulse blur</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Motion speed <span class="val" id="val-bgAnimSpeed"></span></div>
+        <input type="range" id="bgAnimSpeed" min="1" max="30" step="1">
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Pattern Animation</p>
+      <div class="toggle-row">
+        <div class="field-label">Animate pattern</div>
+        <label class="switch"><input type="checkbox" id="animEnabled"><span class="slider-toggle"></span></label>
+      </div>
+      <div class="field">
+        <div class="field-label">Motion type</div>
+        <select id="animType">
+          <option value="slide">Slide</option>
+          <option value="wave">Wave</option>
+          <option value="pulse">Pulse</option>
+          <option value="rotate">Rotate</option>
+        </select>
+      </div>
+      <div class="field" id="animDirectionField">
+        <div class="field-label">Direction</div>
+        <select id="animDirection">
+          <option value="horizontal">Horizontal</option>
+          <option value="vertical">Vertical</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Speed <span class="val" id="val-animSpeed"></span></div>
+        <input type="range" id="animSpeed" min="1" max="30" step="1">
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">Export</p>
+      <div class="btn-row" style="margin-bottom:8px;">
+        <button class="btn" id="exportPng">⬇ PNG</button>
+        <button class="btn" id="exportSvg">⬇ SVG</button>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Video duration <span class="val" id="val-recDuration"></span></div>
+        <input type="range" id="recDuration" min="1" max="10" step="1">
+      </div>
+      <div class="field">
+        <div class="field-label">Frame rate</div>
+        <select id="recFps">
+          <option value="24">24 fps</option>
+          <option value="30" selected>30 fps</option>
+          <option value="60">60 fps</option>
+        </select>
+      </div>
+      <button class="btn btn--primary" id="recordBtn">● Record video (WebM)</button>
+      <p class="hint" id="recHint">Turn on background or pattern animation above to capture real motion — otherwise the clip will just loop a still frame.</p>
+    </div>
+
+    <div class="section">
+      <button class="btn" id="randomizeBtn">🎲 Randomize</button>
+    </div>
+  </aside>
+
+  <main class="stage-wrap">
+    <div class="canvas-frame">
+      <canvas id="stage" width="1280" height="720"></canvas>
+      <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span id="recBadgeText">REC</span></div>
+    </div>
+    <div class="stage-toolbar">
+      <button class="btn" id="playPauseBtn">⏸ Pause preview</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+(() => {
+  const CANVAS_W = 1280, CANVAS_H = 720;
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+
+  const PATTERN_TYPES = [
+    { id: 'lines',  label: 'Lines',  icon: '▌▌▌' },
+    { id: 'dashes', label: 'Dashes', icon: '┊┊┊' },
+    { id: 'stacks', label: 'Stacks', icon: '☰' },
+    { id: 'grid',   label: 'Grid',   icon: '▦' },
+    { id: 'arcs',   label: 'Arcs',   icon: '◜◝' },
+  ];
+
+  const COLOR_SWATCHES = [
+    '#4f6df5', '#1e3a8a', '#2fb8a3', '#0f5c52', '#a06cd5', '#4c2a7a',
+    '#f2a6c9', '#c23d73', '#f7b955', '#9a5a12', '#e7e7ee', '#17170f',
+  ];
+
+  const GRADIENT_PRESETS = [
+    { name: 'Sunset Dune',  angle: 120, stops: [[0,'#5b8def'],[0.45,'#f2a6c9'],[0.72,'#f7b955'],[1,'#1e3a6e']] },
+    { name: 'Dusk Violet',  angle: 135, stops: [[0,'#241a4a'],[0.5,'#a06cd5'],[1,'#f2a6c9']] },
+    { name: 'Ocean Mint',   angle: 160, stops: [[0,'#0f3d3e'],[0.5,'#2fb8a3'],[1,'#cdf2e6']] },
+    { name: 'Midnight',     angle: 110, stops: [[0,'#0b1026'],[0.5,'#243b6b'],[1,'#5b8def']] },
+    { name: 'Peach Sky',    angle: 100, stops: [[0,'#f7cfa0'],[0.5,'#f2a6c9'],[1,'#7ea6e0']] },
+    { name: 'Forest Fog',   angle: 140, stops: [[0,'#1f3d2b'],[0.5,'#5c8a5a'],[1,'#dcecd4']] },
+    { name: 'Berry Frost',  angle: 150, stops: [[0,'#3a0f3d'],[0.5,'#c23d73'],[1,'#f7cfa0']] },
+    { name: 'Steel Sky',    angle: 100, stops: [[0,'#2a3346'],[0.5,'#6b7fa3'],[1,'#dfe6f2']] },
+  ];
+
+  const state = {
+    patternType: 'lines',
+    shapeType: 'rect',
+    shapesPerRow: 30,
+    shapeHeight: 160,
+    shapeSpacing: 8,
+    rows: 6,
+    rowSpacing: 10,
+    alternating: false,
+    flipVertical: false,
+    flipAlternate: false,
+    horizontalOffset: false,
+    rowVariance: 'none',
+    color: '#e9eefc',
+    opacity: 88,
+    blendMode: 'overlay',
+    bg: {
+      mode: 'gradient',
+      presetIndex: 0,
+      angle: 120,
+      blur: 28,
+      image: null,
+      animate: false,
+      animType: 'drift',
+      animSpeed: 6,
+    },
+    anim: {
+      enabled: false,
+      type: 'slide',
+      direction: 'horizontal',
+      speed: 8,
+    },
+  };
+
+  let rafId = null;
+  let startTime = null;
+  let pausedElapsed = 0;
+  let isPaused = false;
+  let recording = false;
+  let recorder = null;
+  let recChunks = [];
+
+  // ---------------- geometry ----------------
+
+  function shapeKindFor(shapeType) { return shapeType; }
+
+  function flipCorner(c) { return { tl: 'bl', bl: 'tl', tr: 'br', br: 'tr' }[c]; }
+
+  function seededMul(i) {
+    const x = Math.sin(i * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function computeShapes(elapsed) {
+    const cols = Math.max(1, state.shapesPerRow);
+    const rows = Math.max(1, state.rows);
+    const W = CANVAS_W, H = CANVAS_H;
+    const cellW = W / cols;
+    const cellH = H / rows;
+    const shapes = [];
+
+    let slideOffsetX = 0, slideOffsetY = 0;
+    const sliding = state.anim.enabled && state.anim.type === 'slide';
+    if (sliding) {
+      const speedPx = state.anim.speed * 22;
+      if (state.anim.direction === 'horizontal') slideOffsetX = (elapsed * speedPx) % cellW;
+      else slideOffsetY = (elapsed * speedPx) % cellH;
+    }
+    const colLo = (sliding && state.anim.direction === 'horizontal') ? -1 : 0;
+    const colHi = cols - 1 + ((sliding && state.anim.direction === 'horizontal') ? 1 : 0);
+    const rowLo = (sliding && state.anim.direction === 'vertical') ? -1 : 0;
+    const rowHi = rows - 1 + ((sliding && state.anim.direction === 'vertical') ? 1 : 0);
+
+    for (let row = rowLo; row <= rowHi; row++) {
+      let rowHeightMul = 1;
+      const wavePhase = state.anim.enabled && state.anim.type === 'wave' ? elapsed * state.anim.speed * 0.8 : 0;
+      if (state.rowVariance === 'wave') rowHeightMul = 1 + 0.35 * Math.sin(row * 0.8 + wavePhase);
+      else if (state.rowVariance === 'random') rowHeightMul = 0.55 + seededMul(row + 1) * 0.9;
+      else if (state.rowVariance === 'increasing') rowHeightMul = 0.55 + (row / rows) * 0.9;
+
+      const baseShapeH = Math.max(1, state.shapeHeight * rowHeightMul - state.rowSpacing);
+
+      for (let col = colLo; col <= colHi; col++) {
+        if (state.alternating && state.patternType !== 'arcs' && ((row + col) % 2 === 1)) continue;
+
+        let cx = col * cellW + cellW / 2 - slideOffsetX;
+        let cy = row * cellH + cellH / 2 - slideOffsetY;
+        if (state.horizontalOffset && ((row % 2 + 2) % 2) === 1) cx += cellW / 2;
+
+        let w = Math.max(1, cellW - state.shapeSpacing);
+        let h = baseShapeH;
+
+        if (state.anim.enabled && state.anim.type === 'wave' && state.rowVariance !== 'wave') {
+          const phase = col * 0.35 + row * 0.2;
+          h = Math.max(1, h * (1 + 0.3 * Math.sin(elapsed * state.anim.speed * 0.8 + phase)));
+        }
+        let scale = 1;
+        if (state.anim.enabled && state.anim.type === 'pulse') {
+          const phase = (col + row) * 0.18;
+          scale = 1 + 0.22 * Math.sin(elapsed * state.anim.speed * 0.7 + phase);
+        }
+        w = Math.max(1, w * scale);
+        h = Math.max(1, h * scale);
+
+        let rotation = 0;
+        if (state.anim.enabled && state.anim.type === 'rotate') {
+          rotation = elapsed * state.anim.speed * 0.12 + (col + row) * 0.06;
+        }
+
+        const flip = state.flipVertical || (state.flipAlternate && ((col % 2 + 2) % 2) === 1);
+        const kind = state.patternType === 'arcs' ? 'arc' : shapeKindFor(state.shapeType);
+
+        if (state.patternType === 'dashes') {
+          const dashCount = 4;
+          const gap = 5;
+          const dashH = Math.max(1, (h - (dashCount - 1) * gap) / dashCount);
+          let y0 = cy - h / 2;
+          for (let d = 0; d < dashCount; d++) {
+            shapes.push({ kind, x: cx - w / 2, y: y0 + d * (dashH + gap), w, h: dashH, rotation });
+          }
+          continue;
+        }
+
+        if (state.patternType === 'stacks') {
+          const gap = Math.max(4, state.rowSpacing * 0.4);
+          const topH = Math.max(1, h * 0.6);
+          const botH = Math.max(1, h * 0.34);
+          const totalH = topH + gap + botH;
+          let y0 = cy - totalH / 2;
+          shapes.push({ kind, x: cx - w / 2, y: y0, w, h: topH, rotation });
+          shapes.push({ kind, x: cx - w / 2, y: y0 + topH + gap, w, h: botH, rotation });
+          continue;
+        }
+
+        if (kind === 'arc') {
+          const size = Math.min(w, h);
+          const x = cx - size / 2, y = cy - size / 2;
+          const cornerBase = ((Math.abs(row) + Math.abs(col)) % 2 === 0) ? 'tl' : 'br';
+          const corner = flip ? flipCorner(cornerBase) : cornerBase;
+          shapes.push({ kind: 'arc', x, y, w: size, h: size, arcCorner: corner });
+          continue;
+        }
+
+        shapes.push({ kind, x: cx - w / 2, y: cy - h / 2, w, h, rotation, flip });
+      }
+    }
+    return shapes;
+  }
+
+  // ---------------- canvas drawing ----------------
+
+  function pillPath(c, x, y, w, h) {
+    const r = Math.min(Math.abs(w), Math.abs(h)) / 2;
+    c.beginPath();
+    if (c.roundRect) { c.roundRect(x, y, w, h, r); return; }
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function drawShapeCanvas(c, s) {
+    if (!(s.w > 0) || !(s.h > 0)) return;
+    c.save();
+    if (s.rotation) {
+      const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+      c.translate(cx, cy);
+      c.rotate(s.rotation);
+      c.translate(-cx, -cy);
+    }
+    switch (s.kind) {
+      case 'rect':
+        c.fillRect(s.x, s.y, s.w, s.h);
+        break;
+      case 'pill':
+        pillPath(c, s.x, s.y, s.w, s.h);
+        c.fill();
+        break;
+      case 'circle': {
+        const r = Math.min(s.w, s.h) / 2;
+        c.beginPath();
+        c.arc(s.x + s.w / 2, s.y + s.h / 2, r, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+      case 'diamond':
+        c.beginPath();
+        c.moveTo(s.x + s.w / 2, s.y);
+        c.lineTo(s.x + s.w, s.y + s.h / 2);
+        c.lineTo(s.x + s.w / 2, s.y + s.h);
+        c.lineTo(s.x, s.y + s.h / 2);
+        c.closePath();
+        c.fill();
+        break;
+      case 'arc': {
+        c.beginPath();
+        c.rect(s.x, s.y, s.w, s.h);
+        c.clip();
+        const r = Math.min(s.w, s.h);
+        const corners = { tl: [s.x, s.y], tr: [s.x + s.w, s.y], bl: [s.x, s.y + s.h], br: [s.x + s.w, s.y + s.h] };
+        const [ccx, ccy] = corners[s.arcCorner];
+        c.beginPath();
+        c.arc(ccx, ccy, r, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+    }
+    c.restore();
+  }
+
+  function drawPatternCanvas(c, elapsed) {
+    const shapes = computeShapes(elapsed);
+    c.save();
+    c.globalAlpha = state.opacity / 100;
+    c.globalCompositeOperation = state.blendMode;
+    c.fillStyle = state.color;
+    for (const s of shapes) drawShapeCanvas(c, s);
+    c.restore();
+  }
+
+  function currentGradientPreset() {
+    return GRADIENT_PRESETS[state.bg.presetIndex] || GRADIENT_PRESETS[0];
+  }
+
+  function drawBackground(c, elapsed) {
+    const pad = 90;
+    const W = CANVAS_W, H = CANVAS_H;
+    let blur = state.bg.blur;
+    if (state.bg.animate && state.bg.animType === 'pulse') {
+      blur = Math.max(0, blur + Math.sin(elapsed * state.bg.animSpeed * 0.3) * blur * 0.5);
+    }
+    c.save();
+    c.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+
+    if (state.bg.mode === 'image' && state.bg.image) {
+      const img = state.bg.image;
+      const targetW = W + pad * 2, targetH = H + pad * 2;
+      const scale = Math.max(targetW / img.width, targetH / img.height) * 1.08;
+      const dw = img.width * scale, dh = img.height * scale;
+      let dx = (W - dw) / 2, dy = (H - dh) / 2;
+      if (state.bg.animate && state.bg.animType === 'drift') {
+        dx += Math.sin(elapsed * state.bg.animSpeed * 0.15) * 40;
+        dy += Math.cos(elapsed * state.bg.animSpeed * 0.11) * 30;
+      }
+      if (state.bg.animate && state.bg.animType === 'rotate') {
+        c.translate(W / 2, H / 2);
+        c.rotate(elapsed * state.bg.animSpeed * 0.01);
+        c.translate(-W / 2, -H / 2);
+      }
+      c.drawImage(img, dx, dy, dw, dh);
+    } else {
+      const preset = currentGradientPreset();
+      let angle = state.bg.angle;
+      if (state.bg.animate && state.bg.animType === 'rotate') angle += elapsed * state.bg.animSpeed * 3;
+      const rad = (angle * Math.PI) / 180;
+      const cx = W / 2, cy = H / 2;
+      const len = Math.sqrt(W * W + H * H) / 2 + pad;
+      const x0 = cx - Math.cos(rad) * len, y0 = cy - Math.sin(rad) * len;
+      const x1 = cx + Math.cos(rad) * len, y1 = cy + Math.sin(rad) * len;
+      const grad = c.createLinearGradient(x0, y0, x1, y1);
+      let shift = 0;
+      if (state.bg.animate && state.bg.animType === 'drift') {
+        shift = Math.sin(elapsed * state.bg.animSpeed * 0.2) * 0.12;
+      }
+      preset.stops.forEach(([pos, color]) => {
+        const p = Math.min(1, Math.max(0, pos + shift));
+        grad.addColorStop(p, color);
+      });
+      c.fillStyle = grad;
+      c.fillRect(-pad, -pad, W + pad * 2, H + pad * 2);
+    }
+    c.restore();
+  }
+
+  function draw(elapsed) {
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    drawBackground(ctx, elapsed);
+    drawPatternCanvas(ctx, elapsed);
+  }
+
+  function isAnimating() {
+    return state.bg.animate || state.anim.enabled || recording;
+  }
+
+  function frame(t) {
+    if (startTime === null) startTime = t - pausedElapsed * 1000;
+    const elapsed = isPaused ? pausedElapsed : (t - startTime) / 1000;
+    if (!isPaused) pausedElapsed = elapsed;
+    draw(elapsed);
+    if ((isAnimating() && !isPaused) || recording) {
+      rafId = requestAnimationFrame(frame);
+    } else {
+      rafId = null;
+    }
+  }
+
+  function requestRender() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function forceStaticRedraw() {
+    draw(pausedElapsed);
+  }
+
+  // ---------------- SVG export ----------------
+
+  function svgShapeMarkup(s, fill) {
+    const rot = s.rotation ? ` transform="rotate(${(s.rotation * 180 / Math.PI).toFixed(2)} ${(s.x + s.w / 2).toFixed(1)} ${(s.y + s.h / 2).toFixed(1)})"` : '';
+    switch (s.kind) {
+      case 'rect':
+        return `<rect x="${s.x.toFixed(1)}" y="${s.y.toFixed(1)}" width="${s.w.toFixed(1)}" height="${s.h.toFixed(1)}" fill="${fill}"${rot}/>`;
+      case 'pill': {
+        const r = (Math.min(s.w, s.h) / 2).toFixed(1);
+        return `<rect x="${s.x.toFixed(1)}" y="${s.y.toFixed(1)}" width="${s.w.toFixed(1)}" height="${s.h.toFixed(1)}" rx="${r}" ry="${r}" fill="${fill}"${rot}/>`;
+      }
+      case 'circle': {
+        const r = (Math.min(s.w, s.h) / 2).toFixed(1);
+        return `<circle cx="${(s.x + s.w / 2).toFixed(1)}" cy="${(s.y + s.h / 2).toFixed(1)}" r="${r}" fill="${fill}"${rot}/>`;
+      }
+      case 'diamond': {
+        const pts = `${(s.x + s.w / 2).toFixed(1)},${s.y.toFixed(1)} ${(s.x + s.w).toFixed(1)},${(s.y + s.h / 2).toFixed(1)} ${(s.x + s.w / 2).toFixed(1)},${(s.y + s.h).toFixed(1)} ${s.x.toFixed(1)},${(s.y + s.h / 2).toFixed(1)}`;
+        return `<polygon points="${pts}" fill="${fill}"${rot}/>`;
+      }
+      case 'arc': {
+        const r = Math.min(s.w, s.h);
+        const corners = { tl: [s.x, s.y], tr: [s.x + s.w, s.y], bl: [s.x, s.y + s.h], br: [s.x + s.w, s.y + s.h] };
+        const [ccx, ccy] = corners[s.arcCorner];
+        const clipId = `clip-${Math.random().toString(36).slice(2, 9)}`;
+        return `<clipPath id="${clipId}"><rect x="${s.x.toFixed(1)}" y="${s.y.toFixed(1)}" width="${s.w.toFixed(1)}" height="${s.h.toFixed(1)}"/></clipPath>` +
+               `<circle cx="${ccx.toFixed(1)}" cy="${ccy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" clip-path="url(#${clipId})"/>`;
+      }
+      default: return '';
+    }
+  }
+
+  function buildSvgMarkup() {
+    const W = CANVAS_W, H = CANVAS_H;
+    const shapes = computeShapes(pausedElapsed);
+    const blur = state.bg.blur;
+    let bgMarkup;
+    let defsExtra = '';
+    if (state.bg.mode === 'image' && state.bg.image) {
+      const dataUrl = imageToDataUrl(state.bg.image);
+      bgMarkup = `<image href="${dataUrl}" x="-40" y="-40" width="${W + 80}" height="${H + 80}" preserveAspectRatio="xMidYMid slice" filter="url(#blurFilter)"/>`;
+    } else {
+      const preset = currentGradientPreset();
+      const rad = (state.bg.angle * Math.PI) / 180;
+      const x1 = (50 - Math.cos(rad) * 50).toFixed(1), y1 = (50 - Math.sin(rad) * 50).toFixed(1);
+      const x2 = (50 + Math.cos(rad) * 50).toFixed(1), y2 = (50 + Math.sin(rad) * 50).toFixed(1);
+      const stops = preset.stops.map(([pos, color]) => `<stop offset="${(pos * 100).toFixed(1)}%" stop-color="${color}"/>`).join('');
+      defsExtra += `<linearGradient id="bgGrad" x1="${x1}%" y1="${y1}%" x2="${x2}%" y2="${y2}%">${stops}</linearGradient>`;
+      bgMarkup = `<rect x="-40" y="-40" width="${W + 80}" height="${H + 80}" fill="url(#bgGrad)" filter="url(#blurFilter)"/>`;
+    }
+    const shapeMarkup = shapes.map(s => svgShapeMarkup(s, state.color)).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <filter id="blurFilter" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${(blur / 2).toFixed(1)}"/></filter>
+    ${defsExtra}
+  </defs>
+  <clipPath id="stageClip"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath>
+  <g clip-path="url(#stageClip)">
+    ${bgMarkup}
+    <g opacity="${(state.opacity / 100).toFixed(2)}" style="mix-blend-mode:${state.blendMode}">${shapeMarkup}</g>
+  </g>
+</svg>`;
+  }
+
+  function imageToDataUrl(img) {
+    const off = document.createElement('canvas');
+    off.width = img.width; off.height = img.height;
+    const octx = off.getContext('2d');
+    octx.drawImage(img, 0, 0);
+    return off.toDataURL('image/png');
+  }
+
+  // ---------------- controls wiring ----------------
+
+  function triggerDownload(url, filename) {
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
+  function buildPatternButtons() {
+    const wrap = document.getElementById('patternTypeButtons');
+    wrap.innerHTML = '';
+    PATTERN_TYPES.forEach(p => {
+      const btn = document.createElement('div');
+      btn.className = 'chip' + (state.patternType === p.id ? ' active' : '');
+      btn.textContent = p.label;
+      btn.onclick = () => { state.patternType = p.id; buildPatternButtons(); forceStaticRedraw(); requestRender(); };
+      wrap.appendChild(btn);
+    });
+  }
+
+  function buildColorSwatches() {
+    const wrap = document.getElementById('colorSwatches');
+    wrap.innerHTML = '';
+    COLOR_SWATCHES.forEach(c => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch' + (state.color.toLowerCase() === c ? ' active' : '');
+      sw.style.background = c;
+      sw.onclick = () => {
+        state.color = c;
+        document.getElementById('colorPicker').value = c;
+        buildColorSwatches();
+        forceStaticRedraw(); requestRender();
+      };
+      wrap.appendChild(sw);
+    });
+  }
+
+  function buildGradPresets() {
+    const wrap = document.getElementById('gradPresets');
+    wrap.innerHTML = '';
+    GRADIENT_PRESETS.forEach((p, i) => {
+      const el = document.createElement('div');
+      el.className = 'grad-swatch' + (state.bg.presetIndex === i ? ' active' : '');
+      el.title = p.name;
+      const stopsCss = p.stops.map(([pos, c]) => `${c} ${pos * 100}%`).join(', ');
+      el.style.background = `linear-gradient(${p.angle}deg, ${stopsCss})`;
+      el.onclick = () => {
+        state.bg.presetIndex = i;
+        state.bg.angle = p.angle;
+        document.getElementById('bgAngle').value = p.angle;
+        document.getElementById('val-bgAngle').textContent = p.angle + '°';
+        buildGradPresets();
+        forceStaticRedraw(); requestRender();
+      };
+      wrap.appendChild(el);
+    });
+  }
+
+  function syncControlsFromState() {
+    document.getElementById('shapeType').value = state.shapeType;
+    setRange('shapesPerRow', state.shapesPerRow, v => v);
+    setRange('shapeHeight', state.shapeHeight, v => v + 'px');
+    setRange('shapeSpacing', state.shapeSpacing, v => v + 'px');
+    setRange('rows', state.rows, v => v);
+    setRange('rowSpacing', state.rowSpacing, v => v + 'px');
+    document.getElementById('alternating').checked = state.alternating;
+    document.getElementById('flipVertical').checked = state.flipVertical;
+    document.getElementById('flipAlternate').checked = state.flipAlternate;
+    document.getElementById('horizontalOffset').checked = state.horizontalOffset;
+    document.getElementById('rowVariance').value = state.rowVariance;
+    document.getElementById('colorPicker').value = state.color;
+    setRange('opacity', state.opacity, v => v + '%');
+    document.getElementById('blendMode').value = state.blendMode;
+    setRange('bgAngle', state.bg.angle, v => v + '°');
+    setRange('bgBlur', state.bg.blur, v => v + 'px');
+    document.getElementById('bgAnimate').checked = state.bg.animate;
+    document.getElementById('bgAnimType').value = state.bg.animType;
+    setRange('bgAnimSpeed', state.bg.animSpeed, v => v);
+    document.getElementById('animEnabled').checked = state.anim.enabled;
+    document.getElementById('animType').value = state.anim.type;
+    document.getElementById('animDirection').value = state.anim.direction;
+    setRange('animSpeed', state.anim.speed, v => v);
+    buildPatternButtons();
+    buildColorSwatches();
+    buildGradPresets();
+  }
+
+  function setRange(id, value, fmt) {
+    const el = document.getElementById(id);
+    el.value = value;
+    document.getElementById('val-' + id).textContent = fmt(value);
+  }
+
+  function bindRange(id, onChange, fmt) {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      const v = Number(el.value);
+      document.getElementById('val-' + id).textContent = fmt(v);
+      onChange(v);
+      forceStaticRedraw();
+      requestRender();
+    });
+  }
+
+  bindRange('shapesPerRow', v => state.shapesPerRow = v, v => v);
+  bindRange('shapeHeight', v => state.shapeHeight = v, v => v + 'px');
+  bindRange('shapeSpacing', v => state.shapeSpacing = v, v => v + 'px');
+  bindRange('rows', v => state.rows = v, v => v);
+  bindRange('rowSpacing', v => state.rowSpacing = v, v => v + 'px');
+  bindRange('opacity', v => state.opacity = v, v => v + '%');
+  bindRange('bgAngle', v => state.bg.angle = v, v => v + '°');
+  bindRange('bgBlur', v => state.bg.blur = v, v => v + 'px');
+  bindRange('bgAnimSpeed', v => state.bg.animSpeed = v, v => v);
+  bindRange('animSpeed', v => state.anim.speed = v, v => v);
+  bindRange('recDuration', v => {}, v => v + 's');
+
+  document.getElementById('shapeType').addEventListener('change', e => { state.shapeType = e.target.value; forceStaticRedraw(); requestRender(); });
+  document.getElementById('rowVariance').addEventListener('change', e => { state.rowVariance = e.target.value; forceStaticRedraw(); requestRender(); });
+  document.getElementById('blendMode').addEventListener('change', e => { state.blendMode = e.target.value; forceStaticRedraw(); requestRender(); });
+  document.getElementById('bgAnimType').addEventListener('change', e => { state.bg.animType = e.target.value; forceStaticRedraw(); requestRender(); });
+  document.getElementById('animType').addEventListener('change', e => {
+    state.anim.type = e.target.value;
+    document.getElementById('animDirectionField').style.display = e.target.value === 'slide' ? 'block' : 'none';
+    forceStaticRedraw(); requestRender();
+  });
+  document.getElementById('animDirection').addEventListener('change', e => { state.anim.direction = e.target.value; forceStaticRedraw(); requestRender(); });
+
+  document.getElementById('colorPicker').addEventListener('input', e => { state.color = e.target.value; buildColorSwatches(); forceStaticRedraw(); requestRender(); });
+
+  ['alternating', 'flipVertical', 'flipAlternate', 'horizontalOffset'].forEach(id => {
+    document.getElementById(id).addEventListener('change', e => { state[id] = e.target.checked; forceStaticRedraw(); requestRender(); });
+  });
+
+  document.getElementById('bgAnimate').addEventListener('change', e => { state.bg.animate = e.target.checked; requestRender(); });
+  document.getElementById('animEnabled').addEventListener('change', e => { state.anim.enabled = e.target.checked; requestRender(); });
+
+  document.querySelectorAll('.tab[data-bgmode]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      state.bg.mode = tab.dataset.bgmode;
+      document.getElementById('bgGradientPanel').style.display = state.bg.mode === 'gradient' ? 'block' : 'none';
+      document.getElementById('bgImagePanel').style.display = state.bg.mode === 'image' ? 'block' : 'none';
+      forceStaticRedraw(); requestRender();
+    });
+  });
+
+  document.getElementById('imageUpload').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        state.bg.image = img;
+        state.bg.mode = 'image';
+        document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.toggle('active', t.dataset.bgmode === 'image'));
+        document.getElementById('bgGradientPanel').style.display = 'none';
+        document.getElementById('bgImagePanel').style.display = 'block';
+        forceStaticRedraw(); requestRender();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('removeImageBtn').addEventListener('click', () => {
+    state.bg.image = null;
+    state.bg.mode = 'gradient';
+    document.getElementById('imageUpload').value = '';
+    document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.toggle('active', t.dataset.bgmode === 'gradient'));
+    document.getElementById('bgGradientPanel').style.display = 'block';
+    document.getElementById('bgImagePanel').style.display = 'none';
+    forceStaticRedraw(); requestRender();
+  });
+
+  // ---------------- play / pause / reset ----------------
+
+  document.getElementById('playPauseBtn').addEventListener('click', () => {
+    isPaused = !isPaused;
+    document.getElementById('playPauseBtn').textContent = isPaused ? '▶ Resume preview' : '⏸ Pause preview';
+    if (!isPaused) { startTime = null; requestRender(); }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    Object.assign(state, {
+      patternType: 'lines', shapeType: 'rect', shapesPerRow: 30, shapeHeight: 160, shapeSpacing: 8,
+      rows: 6, rowSpacing: 10, alternating: false, flipVertical: false, flipAlternate: false,
+      horizontalOffset: false, rowVariance: 'none', color: '#e9eefc', opacity: 88, blendMode: 'overlay',
+    });
+    state.bg = { mode: 'gradient', presetIndex: 0, angle: 120, blur: 28, image: null, animate: false, animType: 'drift', animSpeed: 6 };
+    state.anim = { enabled: false, type: 'slide', direction: 'horizontal', speed: 8 };
+    document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.toggle('active', t.dataset.bgmode === 'gradient'));
+    document.getElementById('bgGradientPanel').style.display = 'block';
+    document.getElementById('bgImagePanel').style.display = 'none';
+    syncControlsFromState();
+    forceStaticRedraw(); requestRender();
+  });
+
+  document.getElementById('randomizeBtn').addEventListener('click', () => {
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    state.patternType = pick(PATTERN_TYPES.map(p => p.id));
+    state.shapeType = pick(['rect', 'pill', 'circle', 'diamond']);
+    state.shapesPerRow = 10 + Math.floor(Math.random() * 50);
+    state.shapeHeight = 30 + Math.floor(Math.random() * 300);
+    state.shapeSpacing = Math.floor(Math.random() * 30);
+    state.rows = 1 + Math.floor(Math.random() * 14);
+    state.rowSpacing = Math.floor(Math.random() * 30);
+    state.alternating = Math.random() > 0.6;
+    state.horizontalOffset = Math.random() > 0.5;
+    state.rowVariance = pick(['none', 'wave', 'random', 'increasing']);
+    state.color = pick(COLOR_SWATCHES);
+    state.opacity = 60 + Math.floor(Math.random() * 40);
+    state.blendMode = pick(['normal', 'multiply', 'overlay', 'screen', 'soft-light']);
+    state.bg.presetIndex = Math.floor(Math.random() * GRADIENT_PRESETS.length);
+    state.bg.angle = GRADIENT_PRESETS[state.bg.presetIndex].angle;
+    syncControlsFromState();
+    forceStaticRedraw(); requestRender();
+  });
+
+  // ---------------- export ----------------
+
+  document.getElementById('exportPng').addEventListener('click', () => {
+    forceStaticRedraw();
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, 'motif-pattern.png');
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, 'image/png');
+  });
+
+  document.getElementById('exportSvg').addEventListener('click', () => {
+    const svg = buildSvgMarkup();
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, 'motif-pattern.svg');
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  });
+
+  const recordBtn = document.getElementById('recordBtn');
+  const recBadge = document.getElementById('recBadge');
+  const recBadgeText = document.getElementById('recBadgeText');
+
+  recordBtn.addEventListener('click', () => {
+    if (recording) { stopRecording(); return; }
+    startRecording();
+  });
+
+  function pickMimeType() {
+    const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    for (const m of candidates) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    return '';
+  }
+
+  function startRecording() {
+    if (!window.MediaRecorder) { alert('Video recording is not supported in this browser.'); return; }
+    const fps = Number(document.getElementById('recFps').value);
+    const duration = Number(document.getElementById('recDuration').value);
+    const stream = canvas.captureStream(fps);
+    const mime = pickMimeType();
+    try {
+      recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 9_000_000 } : undefined);
+    } catch (err) {
+      alert('Could not start recording: ' + err.message);
+      return;
+    }
+    recChunks = [];
+    recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+    recorder.onstop = () => {
+      const blob = new Blob(recChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, 'motif-pattern-animation.webm');
+      setTimeout(() => URL.revokeObjectURL(url), 8000);
+      recording = false;
+      recordBtn.textContent = '● Record video (WebM)';
+      recBadge.classList.remove('show');
+      requestRender();
+    };
+    recorder.start();
+    recording = true;
+    recordBtn.textContent = '■ Stop recording';
+    recBadge.classList.add('show');
+    startTime = null;
+    requestRender();
+
+    let remaining = duration;
+    recBadgeText.textContent = `REC ${remaining}s`;
+    const tick = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) { clearInterval(tick); return; }
+      recBadgeText.textContent = `REC ${remaining}s`;
+    }, 1000);
+
+    setTimeout(() => { if (recording) stopRecording(); clearInterval(tick); }, duration * 1000);
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+  }
+
+  // ---------------- init ----------------
+
+  syncControlsFromState();
+  document.getElementById('animDirectionField').style.display = state.anim.type === 'slide' ? 'block' : 'none';
+  setRange('recDuration', 5, v => v + 's');
+  forceStaticRedraw();
+  requestRender();
+})();
+</script>
+</body>
+</html>
