@@ -285,6 +285,54 @@
     </div>
 
     <div class="section">
+      <p class="section-title">Combine Shapes</p>
+      <div class="toggle-row">
+        <div class="field-label">Add a second shape</div>
+        <label class="switch"><input type="checkbox" id="secondShapeEnabled"><span class="slider-toggle"></span></label>
+      </div>
+      <p class="hint" id="secondShapeHint">Layers a second shape on top of every one already in the pattern — try Pill + Pill rotated 90° for a woven grid, or Circle + Diamond for a starburst look.</p>
+
+      <div id="secondShapePanel" style="display:none;">
+        <div class="field">
+          <div class="field-label">Second shape type</div>
+          <select id="secondShapeType">
+            <option value="rect">Rectangle</option>
+            <option value="pill">Pill</option>
+            <option value="circle">Circle</option>
+            <option value="diamond">Diamond</option>
+            <option value="triangle">Triangle</option>
+            <option value="hexagon">Hexagon</option>
+            <option value="star">Star</option>
+            <option value="cross">Cross</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Size <span class="val" id="val-secondShapeScale"></span></div>
+          <input type="range" id="secondShapeScale" min="10" max="150" step="1">
+        </div>
+        <div class="field">
+          <div class="field-label">Rotation <span class="val" id="val-secondShapeRotation"></span></div>
+          <input type="range" id="secondShapeRotation" min="0" max="180" step="1">
+        </div>
+        <div class="field">
+          <div class="field-label">Offset X <span class="val" id="val-secondShapeOffsetX"></span></div>
+          <input type="range" id="secondShapeOffsetX" min="-100" max="100" step="1">
+        </div>
+        <div class="field">
+          <div class="field-label">Offset Y <span class="val" id="val-secondShapeOffsetY"></span></div>
+          <input type="range" id="secondShapeOffsetY" min="-100" max="100" step="1">
+        </div>
+        <div class="toggle-row">
+          <div class="field-label">Use a different color</div>
+          <label class="switch"><input type="checkbox" id="secondShapeUseOwnColor"><span class="slider-toggle"></span></label>
+        </div>
+        <div class="field" id="secondShapeColorField" style="display:none;">
+          <input type="color" id="secondShapeColor">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <p class="section-title">Color</p>
       <div class="color-row">
         <input type="color" id="colorPicker">
@@ -517,6 +565,16 @@
       direction: 'horizontal',
       speed: 8,
     },
+    secondShape: {
+      enabled: false,
+      type: 'pill',
+      scale: 0.9,
+      rotation: 90,
+      offsetX: 0,
+      offsetY: 0,
+      useOwnColor: false,
+      color: '#ffffff',
+    },
   };
 
   let rafId = null;
@@ -541,6 +599,29 @@
 
   function computeShapes(elapsed) {
     if (state.patternType === 'rings') return computeRingShapes(elapsed);
+    const base = computeBaseShapes(elapsed);
+    if (!state.secondShape.enabled) return base;
+
+    const ss = state.secondShape;
+    const rot2 = (ss.rotation * Math.PI) / 180;
+    const extra = [];
+    for (const s of base) {
+      if (s.kind === 'ringseg' || !(s.w > 0) || !(s.h > 0)) continue;
+      const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+      const w2 = s.w * ss.scale, h2 = s.h * ss.scale;
+      extra.push({
+        kind: ss.type,
+        x: cx - w2 / 2 + ss.offsetX,
+        y: cy - h2 / 2 + ss.offsetY,
+        w: w2, h: h2,
+        rotation: (s.rotation || 0) + rot2,
+        layer: 'secondary',
+      });
+    }
+    return base.concat(extra);
+  }
+
+  function computeBaseShapes(elapsed) {
     const cols = Math.max(1, state.shapesPerRow);
     const rows = Math.max(1, state.rows);
     const W = CANVAS_W, H = CANVAS_H;
@@ -843,8 +924,11 @@
     c.save();
     c.globalAlpha = state.opacity / 100;
     c.globalCompositeOperation = state.blendMode;
-    c.fillStyle = state.color;
-    for (const s of shapes) drawShapeCanvas(c, s);
+    const secondaryColor = state.secondShape.useOwnColor ? state.secondShape.color : state.color;
+    for (const s of shapes) {
+      c.fillStyle = s.layer === 'secondary' ? secondaryColor : state.color;
+      drawShapeCanvas(c, s);
+    }
     c.restore();
   }
 
@@ -1022,7 +1106,8 @@
       }
       bgMarkup = `<rect x="-40" y="-40" width="${W + 80}" height="${H + 80}" fill="url(#bgGrad)" filter="url(#blurFilter)"/>`;
     }
-    const shapeMarkup = shapes.map(s => svgShapeMarkup(s, state.color)).join('');
+    const secondaryColor = state.secondShape.useOwnColor ? state.secondShape.color : state.color;
+    const shapeMarkup = shapes.map(s => svgShapeMarkup(s, s.layer === 'secondary' ? secondaryColor : state.color)).join('');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <filter id="blurFilter" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${(blur / 2).toFixed(1)}"/></filter>
@@ -1286,6 +1371,17 @@
     document.getElementById('gradientType').value = state.bg.gradientType;
     document.getElementById('bgAngleField').style.display = state.bg.gradientType === 'radial' ? 'none' : 'block';
     document.getElementById('customGradientPanel').style.display = state.bg.presetIndex === -1 ? 'block' : 'none';
+    document.getElementById('secondShapeEnabled').checked = state.secondShape.enabled;
+    document.getElementById('secondShapePanel').style.display = state.secondShape.enabled ? 'block' : 'none';
+    document.getElementById('secondShapeHint').style.display = state.secondShape.enabled ? 'none' : 'block';
+    document.getElementById('secondShapeType').value = state.secondShape.type;
+    setRange('secondShapeScale', Math.round(state.secondShape.scale * 100), v => v + '%');
+    setRange('secondShapeRotation', state.secondShape.rotation, v => v + '°');
+    setRange('secondShapeOffsetX', state.secondShape.offsetX, v => v + 'px');
+    setRange('secondShapeOffsetY', state.secondShape.offsetY, v => v + 'px');
+    document.getElementById('secondShapeUseOwnColor').checked = state.secondShape.useOwnColor;
+    document.getElementById('secondShapeColorField').style.display = state.secondShape.useOwnColor ? 'block' : 'none';
+    document.getElementById('secondShapeColor').value = state.secondShape.color;
     buildPatternButtons();
     buildColorSwatches();
     buildCustomStopsUI();
@@ -1347,6 +1443,24 @@
   document.getElementById('bgAnimate').addEventListener('change', e => { state.bg.animate = e.target.checked; requestRender(); });
   document.getElementById('animEnabled').addEventListener('change', e => { state.anim.enabled = e.target.checked; requestRender(); });
 
+  document.getElementById('secondShapeEnabled').addEventListener('change', e => {
+    state.secondShape.enabled = e.target.checked;
+    document.getElementById('secondShapePanel').style.display = e.target.checked ? 'block' : 'none';
+    document.getElementById('secondShapeHint').style.display = e.target.checked ? 'none' : 'block';
+    forceStaticRedraw(); requestRender();
+  });
+  document.getElementById('secondShapeType').addEventListener('change', e => { state.secondShape.type = e.target.value; forceStaticRedraw(); requestRender(); });
+  bindRange('secondShapeScale', v => state.secondShape.scale = v / 100, v => v + '%');
+  bindRange('secondShapeRotation', v => state.secondShape.rotation = v, v => v + '°');
+  bindRange('secondShapeOffsetX', v => state.secondShape.offsetX = v, v => v + 'px');
+  bindRange('secondShapeOffsetY', v => state.secondShape.offsetY = v, v => v + 'px');
+  document.getElementById('secondShapeUseOwnColor').addEventListener('change', e => {
+    state.secondShape.useOwnColor = e.target.checked;
+    document.getElementById('secondShapeColorField').style.display = e.target.checked ? 'block' : 'none';
+    forceStaticRedraw(); requestRender();
+  });
+  document.getElementById('secondShapeColor').addEventListener('input', e => { state.secondShape.color = e.target.value; forceStaticRedraw(); requestRender(); });
+
   document.querySelectorAll('.tab[data-bgmode]').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.remove('active'));
@@ -1407,6 +1521,7 @@
       custom: { stops: [{ pos: 0, color: '#6c5ce7' }, { pos: 0.55, color: '#ff6b9d' }, { pos: 1, color: '#ffd93d' }] },
     };
     state.anim = { enabled: false, type: 'slide', direction: 'horizontal', speed: 8 };
+    state.secondShape = { enabled: false, type: 'pill', scale: 0.9, rotation: 90, offsetX: 0, offsetY: 0, useOwnColor: false, color: '#ffffff' };
     document.querySelectorAll('.tab[data-bgmode]').forEach(t => t.classList.toggle('active', t.dataset.bgmode === 'gradient'));
     document.getElementById('bgGradientPanel').style.display = 'block';
     document.getElementById('bgImagePanel').style.display = 'none';
@@ -1432,6 +1547,16 @@
     state.bg.presetIndex = Math.floor(Math.random() * GRADIENT_PRESETS.length);
     state.bg.angle = GRADIENT_PRESETS[state.bg.presetIndex].angle;
     state.bg.gradientType = Math.random() > 0.75 ? 'radial' : 'linear';
+    state.secondShape.enabled = Math.random() > 0.55;
+    if (state.secondShape.enabled) {
+      state.secondShape.type = pick(['rect', 'pill', 'circle', 'diamond', 'triangle', 'hexagon', 'star', 'cross']);
+      state.secondShape.scale = 0.4 + Math.random() * 0.8;
+      state.secondShape.rotation = Math.floor(Math.random() * 181);
+      state.secondShape.offsetX = Math.floor(Math.random() * 41) - 20;
+      state.secondShape.offsetY = Math.floor(Math.random() * 41) - 20;
+      state.secondShape.useOwnColor = Math.random() > 0.5;
+      state.secondShape.color = pick(COLOR_SWATCHES);
+    }
     syncControlsFromState();
     forceStaticRedraw(); requestRender();
   });
