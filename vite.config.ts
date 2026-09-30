@@ -8,15 +8,8 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    rollupOptions: {
-      output: {
-        // Keep the heavy 3D code in its own chunk so the page shell loads first.
-        manualChunks(id) {
-          if (id.includes('node_modules/three') || id.includes('@react-three')) return 'three';
-          if (id.includes('node_modules/gsap') || id.includes('node_modules/lenis')) return 'scroll';
-          return undefined;
-        },
-      },
-    },
+    // three.js is only reached through the lazy SceneRoot import, so it lands in
+    // its own async chunk automatically (no manualChunks needed).
+    chunkSizeWarningLimit: 1100,
   },
 });

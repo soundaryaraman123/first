@@ -12,6 +12,13 @@ const smoothPos = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
 let initialised = false;
 
+/** Reduced-motion still currently shown; advanced by SceneRoot once the canvas has faded out. */
+export const cameraCut = { index: 0 };
+
+/** Below this aspect ratio the fov widens to keep the scene's width in frame. */
+const MIN_ASPECT = 1.15;
+const MAX_FOV = 78;
+
 /** Samples the keyframed camera path at a story position. */
 export function sampleCamera(at: number, outPos: THREE.Vector3, outTarget: THREE.Vector3): number {
   const keys = cameraPath;
@@ -49,8 +56,16 @@ export function CameraRig() {
   useFrame((_, delta) => {
     const { storyPos, activeIndex } = useScrollStore.getState();
     const { reducedMotion } = useUiStore.getState();
-    const at = reducedMotion ? (reducedMotionStills[activeIndex] ?? storyPos) : storyPos;
-    const fov = sampleCamera(at, pos, target);
+    // reduced motion: cut between per-section stills (SceneRoot fades the canvas around the cut)
+    const stillIndex = reducedMotion ? cameraCut.index : activeIndex;
+    const at = reducedMotion ? (reducedMotionStills[stillIndex] ?? storyPos) : storyPos;
+    let fov = sampleCamera(at, pos, target);
+
+    // portrait screens: widen the vertical fov so the slope still fits side to side
+    if (camera.aspect < MIN_ASPECT) {
+      const t = (Math.tan(THREE.MathUtils.degToRad(fov / 2)) * MIN_ASPECT) / camera.aspect;
+      fov = Math.min(THREE.MathUtils.radToDeg(2 * Math.atan(t)), MAX_FOV);
+    }
 
     if (!reducedMotion && POINTER_PARALLAX > 0 && !pointer.touch) {
       pos.x += pointer.ndc.x * POINTER_PARALLAX;

@@ -3,14 +3,14 @@
  * Lazy-loaded from App.tsx. Its render loop stops once the DOM-only
  * sections cover the viewport (scrollStore.sceneActive).
  */
-import { Suspense, use, useEffect } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { useUiStore } from '../state/uiStore';
 import { useScrollStore } from '../state/scrollStore';
 import { RENDER } from './config';
 import { loadWorld } from './world';
 import { Atmosphere } from './Atmosphere';
-import { CameraRig } from './CameraRig';
+import { CameraRig, cameraCut } from './CameraRig';
 import { Terrain } from './terrain/Terrain';
 import { Forest } from './trees/Forest';
 import { FogLayers } from './fog/FogLayers';
@@ -46,12 +46,33 @@ function World() {
   );
 }
 
+/**
+ * Reduced motion: instead of flying the camera, fade the canvas out, cut to the
+ * next section's still, and fade back in.
+ */
+function useReducedMotionCuts() {
+  const reducedMotion = useUiStore((s) => s.reducedMotion);
+  const activeIndex = useScrollStore((s) => s.activeIndex);
+  const [cutting, setCutting] = useState(false);
+  useEffect(() => {
+    if (!reducedMotion || cameraCut.index === activeIndex) return;
+    setCutting(true);
+    const t1 = window.setTimeout(() => {
+      cameraCut.index = activeIndex;
+      setCutting(false);
+    }, 220);
+    return () => window.clearTimeout(t1);
+  }, [reducedMotion, activeIndex]);
+  return cutting;
+}
+
 export default function SceneRoot() {
   const tier = useUiStore((s) => s.tier);
   const sceneActive = useScrollStore((s) => s.sceneActive);
+  const cutting = useReducedMotionCuts();
 
   return (
-    <div className={styles.wrap} data-active={sceneActive} aria-hidden="true">
+    <div className={styles.wrap} data-active={sceneActive} data-cut={cutting || undefined} aria-hidden="true">
       <Canvas
         flat
         dpr={[1, RENDER.maxDpr[tier]]}

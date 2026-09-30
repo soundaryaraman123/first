@@ -44,7 +44,8 @@ float kytG = clamp(aGrow, 0.0, 1.0);
 float kytH = max(transformed.y, 0.0);
 vec3 kytIP = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
 float kytPh = kytIP.x * 0.13 + kytIP.z * 0.07;
-float kytAmp = kytH * kytH * (0.0016 * uWind + 0.018 * aHover);
+// uWind is 0 under reduced motion, which also stills the hover sway
+float kytAmp = kytH * kytH * uWind * (0.0016 + 0.018 * aHover);
 transformed.x += sin(uTime * (1.3 + aHover * 3.2) + kytPh) * kytAmp;
 transformed.z += cos(uTime * (1.1 + aHover * 2.7) + kytPh) * kytAmp * 0.6;
 // shrinking trees lean as they go

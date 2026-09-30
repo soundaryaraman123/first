@@ -4,7 +4,7 @@ import { useSectionProgress } from '../../scroll/useSectionProgress';
 import { ScrollTrigger } from '../../scroll/scrollController';
 import { useUiStore } from '../../state/uiStore';
 import { turn } from '../../content/timeline';
-import { RAILWAY_DRAW } from '../../scene/railway/Railway';
+import { RAILWAY_DRAW } from '../../scene/railway/railwayTiming';
 import { OverlayPanel } from '../../components/OverlayPanel';
 import { DraftTag } from '../../components/DraftTag';
 import { lerp, invLerp } from '../../lib/math';

@@ -51,10 +51,27 @@ export function initScroll(reducedMotion: boolean) {
   }
   // Keyboard, scrollbar drag and native scrolling are caught here.
   window.addEventListener('scroll', clampToGate, { passive: true });
+  // Touch scrolling is native (Lenis doesn't smooth touch): stop upward swipes at the
+  // gate up front rather than snapping back after overshooting.
+  window.addEventListener('touchstart', onTouchStart, { passive: true });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+}
+
+let touchY = 0;
+function onTouchStart(e: TouchEvent) {
+  touchY = e.touches[0]?.clientY ?? 0;
+}
+function onTouchMove(e: TouchEvent) {
+  if (gateY === null || !e.cancelable) return;
+  const y = e.touches[0]?.clientY ?? touchY;
+  const scrollingDown = touchY - y > 0;
+  if (scrollingDown && currentScroll() >= gateY - 2) e.preventDefault();
 }
 
 export function destroyScroll() {
   window.removeEventListener('scroll', clampToGate);
+  window.removeEventListener('touchstart', onTouchStart);
+  window.removeEventListener('touchmove', onTouchMove);
   if (tickerFn) gsap.ticker.remove(tickerFn);
   lenis?.destroy();
   lenis = null;

@@ -100,7 +100,7 @@ button:disabled {
   cursor: default;
 }
 .continue {
-  margin: 0;
+  margin: var(--space-3) 0 0;
   font-size: var(--text-sm);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;

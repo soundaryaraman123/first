@@ -4,7 +4,11 @@ import { useSectionProgress } from '../../scroll/useSectionProgress';
 import { setScrollGate, ScrollTrigger } from '../../scroll/scrollController';
 import { useUiStore } from '../../state/uiStore';
 import { conversion } from '../../content/conversion';
-import { convertRandomPatch, startSweep } from '../../scene/interaction/conversionActions';
+
+// Loaded on demand so the 3D chunk stays out of the initial bundle.
+const actions = () => import('../../scene/interaction/conversionActions');
+const convertRandomPatch = () => void actions().then((m) => m.convertRandomPatch());
+const startSweep = () => void actions().then((m) => m.startSweep());
 import { OverlayPanel } from '../../components/OverlayPanel';
 import { DraftTag } from '../../components/DraftTag';
 import styles from './S3Conversion.module.css';
@@ -52,7 +56,7 @@ export function S3Conversion({ index }: SectionProps) {
     if (!complete) return;
     const panel = panelRef.current;
     const lostFocus = !document.activeElement || document.activeElement === document.body;
-    if (panel && lostFocus) panel.querySelector<HTMLElement>('h2')?.focus();
+    if (panel && lostFocus) panel.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
   }, [complete]);
 
   const pct = Math.round(fraction * 100);
@@ -63,7 +67,8 @@ export function S3Conversion({ index }: SectionProps) {
       <div className={styles.sticky}>
         <div className={styles.panelWrap} data-ui-panel="">
           <div ref={panelRef} className={styles.panel}>
-            {!complete ? (
+            {/* Without WebGL there's nothing to convert: show the outcome and the pine card. */}
+            {!complete && webgl ? (
               <>
                 <h2 id="conversion-title" className={styles.title}>
                   {conversion.heading}
@@ -112,6 +117,15 @@ export function S3Conversion({ index }: SectionProps) {
                 <p>
                   {conversion.completeBody} <DraftTag />
                 </p>
+                <div className={styles.actions}>
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => useUiStore.getState().set({ infoSpecies: 'chirPine' })}
+                  >
+                    {conversion.keyboard.aboutPine}
+                  </button>
+                </div>
                 <p className={styles.continue}>
                   {conversion.continueCue} <span aria-hidden="true">↓</span>
                 </p>

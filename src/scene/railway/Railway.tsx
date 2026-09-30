@@ -12,8 +12,7 @@ import { useUiStore } from '../../state/uiStore';
 import { SECTION } from '../../sections/sectionIndex';
 import { invLerp } from '../../lib/math';
 
-/** Section-2 progress range over which the line draws (0..1 of the section) */
-export const RAILWAY_DRAW: [number, number] = [0.12, 0.7];
+import { RAILWAY_DRAW } from './railwayTiming';
 const RADIAL = 5;
 const SEGMENTS = 360;
 const SLEEPER_SPACING = 2.4;

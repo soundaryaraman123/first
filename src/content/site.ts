@@ -14,6 +14,14 @@ export const site = {
   /** Show small "draft" tags next to unverified facts. Set false for launch. */
   showDraftTags: true,
   draftTagText: 'to verify',
+  /** Optional still images for the no-WebGL fallback (e.g. '/fallback/arrival.jpg'); null = placeholder */
+  fallbackImages: {
+    arrival: null,
+    oldForest: null,
+    turn: null,
+    conversion: null,
+    whatChanged: null,
+  } as Record<'arrival' | 'oldForest' | 'turn' | 'conversion' | 'whatChanged', string | null>,
   noWebGLNotice:
     'Your browser could not start the 3D landscape, so you are seeing still illustrations. The story is the same.',
 };

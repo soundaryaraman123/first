@@ -20,8 +20,8 @@ import { buildProceduralTree, describe, type TreeGeometry } from './geometries';
 let gltfLoader: GLTFLoader | null = null;
 function getLoader() {
   if (!gltfLoader) {
+    // three bundles its Draco decoder (self-hosted with the build; no CDN request)
     const draco = new DRACOLoader();
-    draco.setDecoderPath('/draco/'); // self-hosted decoder (copied from three/examples)
     gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(draco);
   }

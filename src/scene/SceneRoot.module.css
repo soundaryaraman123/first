@@ -5,6 +5,11 @@
   /* Pointer input is read from window (scene/interaction/pointer.ts) so the
      page always scrolls natively, including touch panning over the scene. */
   pointer-events: none;
+  transition: opacity 200ms var(--ease-in-out);
+}
+/* reduced-motion camera cuts happen while the canvas is faded out */
+.wrap[data-cut] {
+  opacity: 0;
 }
 .wrap canvas {
   display: block;

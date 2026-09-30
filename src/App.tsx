@@ -8,6 +8,7 @@ import { DebugHud } from './components/DebugHud';
 import { SoundToggle } from './components/SoundToggle';
 import { TreeLabel } from './components/TreeLabel';
 import { InfoCard } from './components/InfoCard';
+import { NoWebGLBackdrop } from './components/NoWebGLBackdrop';
 import { debugEnabled } from './lib/device';
 
 // The 3D scene is split into its own chunk and loaded after the page shell.
@@ -38,6 +39,7 @@ export function App() {
         </Suspense>
       )}
       {webgl && <Loader />}
+      {!webgl && <NoWebGLBackdrop />}
       <main id="content">
         {sections.map(({ id, Component }, index) => (
           <Component key={id} index={index} />
