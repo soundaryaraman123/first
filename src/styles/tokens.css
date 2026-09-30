@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Design tokens — "Know your trail"
+   --------------------------------------------------------------------------
+   PLACEHOLDER values until the Figma Variables export arrives.
+
+   Structure mirrors a typical Figma Variables export so this file can be
+   replaced wholesale:
+     1. Primitives  (raw palette, --kyt-<family>-<step>)
+     2. Semantic    (what components actually use: --color-*, --panel-*)
+     3. Typography  (--font-*, --text-*, --leading-*)
+     4. Spacing / radius / elevation / motion / layers
+
+   Components should only reference the SEMANTIC layer (2–4). If a Figma
+   export renames primitives, only the mapping in section 2 needs updating.
+   ========================================================================== */
+
+:root {
+  /* ---- 1. Primitives ---------------------------------------------------- */
+  /* Mist greys */
+  --kyt-mist-50: #f1f2ee;
+  --kyt-mist-100: #e2e5df;
+  --kyt-mist-200: #cdd2ca;
+  --kyt-mist-300: #b3b9b0;
+  --kyt-mist-500: #858d85;
+  --kyt-mist-700: #555c56;
+
+  /* Muted greens (moss / canopy) */
+  --kyt-moss-100: #d7dcc6;
+  --kyt-moss-300: #9aa57d;
+  --kyt-moss-500: #6b7a4f;
+  --kyt-moss-700: #44523a;
+  --kyt-moss-900: #26301f;
+
+  /* Bark browns */
+  --kyt-bark-100: #e4d8c4;
+  --kyt-bark-300: #b09a7c;
+  --kyt-bark-500: #7a5e44;
+  --kyt-bark-700: #4e3a2a;
+  --kyt-bark-900: #2b2119;
+
+  /* Field-journal paper + ink */
+  --kyt-paper-50: #f7f1e3;
+  --kyt-paper-100: #efe6d0;
+  --kyt-paper-200: #e3d6b8;
+  --kyt-ink-900: #26221b;
+  --kyt-ink-700: #4a4336;
+  --kyt-ink-500: #6f6553;
+
+  /* The one accent: rhododendron red */
+  --kyt-rhodo-300: #d9786d;
+  --kyt-rhodo-500: #b3362c;
+  --kyt-rhodo-700: #86231c;
+
+  /* Supporting (used sparingly, mostly in data/illustration) */
+  --kyt-water-500: #5b8791;
+  --kyt-resin-500: #c49a3c;
+
+  /* ---- 2. Semantic ------------------------------------------------------ */
+  --color-bg: var(--kyt-mist-100);
+  --color-bg-paper: var(--kyt-paper-50);
+  --color-text: var(--kyt-ink-900);
+  --color-text-muted: var(--kyt-ink-700);
+  --color-text-subtle: var(--kyt-ink-500);
+  --color-text-inverse: var(--kyt-mist-50);
+  --color-heading: var(--kyt-moss-900);
+  --color-accent: var(--kyt-rhodo-500);
+  --color-accent-strong: var(--kyt-rhodo-700);
+  --color-accent-soft: var(--kyt-rhodo-300);
+  --color-link: var(--kyt-moss-700);
+  --color-border: rgb(38 34 27 / 0.16);
+  --color-oak: var(--kyt-moss-700);
+  --color-pine: var(--kyt-resin-500);
+  --color-water: var(--kyt-water-500);
+
+  /* Overlay panels that sit on the 3D scene. Kept opaque enough for
+     WCAG AA body text over any part of the landscape. */
+  --panel-bg: rgb(247 241 227 / 0.92);
+  --panel-bg-strong: rgb(247 241 227 / 0.97);
+  --panel-border: rgb(38 34 27 / 0.12);
+  --panel-shadow: 0 10px 40px rgb(38 34 27 / 0.18);
+  --panel-blur: 6px;
+
+  --focus-ring: 0 0 0 3px var(--kyt-paper-50), 0 0 0 5px var(--kyt-rhodo-500);
+
+  /* ---- 3. Typography ---------------------------------------------------- */
+  /* Swap in the Figma fonts here (add @font-face or a <link> in index.html). */
+  --font-serif: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.75rem;
+  --text-2xl: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  --text-3xl: clamp(2.4rem, 1.6rem + 3.4vw, 3.8rem);
+  --text-display: clamp(3rem, 1.5rem + 7vw, 7.5rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.3;
+  --leading-body: 1.6;
+  --tracking-caps: 0.12em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 650;
+
+  /* ---- 4. Spacing, radius, elevation, motion, layers --------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --measure: 34rem; /* comfortable line length for overlay copy */
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-med: 350ms;
+  --dur-slow: 700ms;
+
+  --z-scene: 0;
+  --z-content: 10;
+  --z-overlay-ui: 40;
+  --z-dialog: 60;
+  --z-loader: 80;
+}

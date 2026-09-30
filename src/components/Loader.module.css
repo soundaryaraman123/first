@@ -1,0 +1,31 @@
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loader);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  background: var(--color-bg);
+  color: var(--kyt-moss-700);
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  transition: opacity var(--dur-slow) var(--ease-out), visibility 0s linear var(--dur-slow);
+}
+.loader[data-ready='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.mark {
+  width: 56px;
+  height: 56px;
+}
+.blaze {
+  fill: var(--color-accent);
+  animation: pulse 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes pulse {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
