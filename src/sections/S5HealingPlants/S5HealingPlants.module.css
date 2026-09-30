@@ -1,4 +1,254 @@
+/* Paper grain: tiny SVG turbulence, tiled. Swap for a Figma texture export if preferred. */
 .section {
+  --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   position: relative;
-  height: auto; min-height: 100vh;
+  z-index: 1;
+  min-height: 100vh;
+  padding: var(--space-9) var(--space-4) var(--space-10);
+  background: var(--paper-grain), radial-gradient(ellipse at 50% 0%, var(--kyt-paper-50), var(--kyt-paper-100) 70%);
+  color: var(--color-text);
+}
+/* Soft hand-over from the 3D landscape to paper */
+.section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 45vh;
+  background: linear-gradient(to bottom, rgb(247 241 227 / 0), var(--kyt-paper-50));
+  pointer-events: none;
+}
+.inner {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+.header {
+  max-width: 40rem;
+  margin-bottom: var(--space-7);
+}
+.kicker {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+  margin-bottom: var(--space-2);
+}
+.title {
+  font-size: var(--text-3xl);
+}
+.intro {
+  font-size: var(--text-md);
+}
+.hint {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-text-subtle);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+  gap: var(--space-5);
+}
+
+/* ---- plate + flip --------------------------------------------------- */
+.plate {
+  position: relative;
+  height: 27rem;
+  perspective: 1200px;
+}
+.flipper {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.plate:hover .flipper,
+.plate:focus-within .flipper,
+.plate[data-open] .flipper {
+  transform: rotateY(180deg);
+}
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  padding: var(--space-4);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--paper-grain), var(--kyt-paper-50);
+  border: 1px solid rgb(74 67 54 / 0.35);
+  outline: 1px solid rgb(74 67 54 / 0.2);
+  outline-offset: -7px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 2px rgb(38 34 27 / 0.1), 0 8px 24px rgb(38 34 27 / 0.08);
+}
+.front {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  text-align: center;
+}
+.back {
+  transform: rotateY(180deg);
+  overflow: auto;
+  background: var(--paper-grain), var(--kyt-paper-100);
+}
+/* Reduced motion: cross-fade instead of the 3D flip */
+:root[data-motion='reduced'] .flipper {
+  transform: none !important;
+  transition: none;
+}
+:root[data-motion='reduced'] .front,
+:root[data-motion='reduced'] .back {
+  backface-visibility: visible;
+  transform: none;
+  transition: opacity var(--dur-med) var(--ease-out);
+}
+:root[data-motion='reduced'] .back {
+  opacity: 0;
+}
+:root[data-motion='reduced'] .plate:hover .back,
+:root[data-motion='reduced'] .plate:focus-within .back,
+:root[data-motion='reduced'] .plate[data-open] .back {
+  opacity: 1;
+}
+:root[data-motion='reduced'] .plate:hover .front,
+:root[data-motion='reduced'] .plate:focus-within .front,
+:root[data-motion='reduced'] .plate[data-open] .front {
+  opacity: 0;
+}
+
+.numeral {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+.drawing {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: var(--space-2) 0;
+}
+.drawing svg,
+.drawing img {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.name {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+.sci {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+.backName {
+  font-size: var(--text-lg);
+  margin: var(--space-1) 0 var(--space-2);
+}
+.desc {
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-3);
+}
+.facts {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+.facts dt {
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kyt-bark-700);
+}
+.facts dd {
+  margin: 0;
+}
+/* The toggle covers the plate (stretched button). Focus ring drawn on the plate. */
+.toggle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.toggle:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+/* Let text on the unfolded back be selectable/scrollable on hover devices */
+@media (hover: hover) {
+  .plate:hover .toggle {
+    pointer-events: none;
+  }
+}
+
+/* ---- fungus aside ---------------------------------------------------- */
+.asideRow {
+  display: grid;
+  grid-template-columns: 1fr minmax(min(15rem, 100%), 17rem);
+  gap: var(--space-6);
+  align-items: center;
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px dashed rgb(74 67 54 / 0.35);
+}
+.asideHeading {
+  font-size: var(--text-2xl);
+  font-style: italic;
+}
+.fun {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+.aside .front,
+.aside .back {
+  background: var(--paper-grain), #efe7d6;
+}
+
+/* ---- note ------------------------------------------------------------ */
+.note {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: rgb(179 54 44 / 0.05);
+}
+.noteIcon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  color: var(--color-accent);
+}
+.noteTitle {
+  font-size: var(--text-xl);
+  color: var(--color-accent-strong);
+  margin-bottom: var(--space-2);
+}
+.note p {
+  margin: 0;
+}
+.medical {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+@media (max-width: 640px) {
+  .asideRow {
+    grid-template-columns: 1fr;
+  }
 }

@@ -46,6 +46,15 @@ export function S3Conversion({ index }: SectionProps) {
     };
   }, [webgl, complete]);
 
+  // Keep keyboard focus in place when the controls are replaced by the "today" panel.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!complete) return;
+    const panel = panelRef.current;
+    const lostFocus = !document.activeElement || document.activeElement === document.body;
+    if (panel && lostFocus) panel.querySelector<HTMLElement>('h2')?.focus();
+  }, [complete]);
+
   const pct = Math.round(fraction * 100);
   const busy = sweeping || complete;
 
@@ -53,7 +62,7 @@ export function S3Conversion({ index }: SectionProps) {
     <section ref={ref} id="the-conversion" className={styles.section} aria-labelledby="conversion-title">
       <div className={styles.sticky}>
         <div className={styles.panelWrap} data-ui-panel="">
-          <div className={styles.panel}>
+          <div ref={panelRef} className={styles.panel}>
             {!complete ? (
               <>
                 <h2 id="conversion-title" className={styles.title}>
@@ -97,7 +106,7 @@ export function S3Conversion({ index }: SectionProps) {
               </>
             ) : (
               <>
-                <h2 id="conversion-title" className={styles.title}>
+                <h2 id="conversion-title" className={styles.title} tabIndex={-1}>
                   {conversion.completeHeading}
                 </h2>
                 <p>

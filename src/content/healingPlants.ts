@@ -21,5 +21,8 @@ export const healingPlants = {
     title: 'Look, don’t pick',
     body: 'Many of these plants grow slowly and are already over-harvested. Enjoy them where they grow, photograph them, and leave them for the next walker — and for the mountain.',
   },
+  /** Drop Figma exports in /public/plates and map them here, e.g. kutki: '/plates/kutki.svg' */
+  plateImages: {} as Partial<Record<PlantId, string>>,
+  romanNumerals: ['I', 'II', 'III', 'IV', 'V', 'VI'],
   medicalNote: 'Descriptions of traditional use are cultural context, not medical advice.',
 };
