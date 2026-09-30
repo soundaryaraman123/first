@@ -1,0 +1,11 @@
+.wrap {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scene);
+  /* Pointer input is read from window (scene/interaction/pointer.ts) so the
+     page always scrolls natively, including touch panning over the scene. */
+  pointer-events: none;
+}
+.wrap canvas {
+  display: block;
+}

@@ -33,12 +33,4 @@ export const sections: SectionDef[] = [
   { id: 'healing-plants', Component: S5HealingPlants },
 ];
 
-/** Story indices by name, so scene code doesn't hard-code numbers. */
-export const SECTION = {
-  arrival: 0,
-  oldForest: 1,
-  turn: 2,
-  conversion: 3,
-  whatChanged: 4,
-  healingPlants: 5,
-} as const;
+export { SECTION } from './sectionIndex';

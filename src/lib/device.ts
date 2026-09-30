@@ -36,8 +36,8 @@ export function detectWebGL(): boolean {
   if (params.has('nowebgl')) return false;
   try {
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
-    return !!gl;
+    // three.js now requires WebGL 2
+    return !!canvas.getContext('webgl2');
   } catch {
     return false;
   }
