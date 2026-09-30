@@ -6,6 +6,7 @@
  * and a gentle wind sway driven by uTime.
  */
 import * as THREE from 'three';
+import { terrainUniforms } from '../terrain/terrainMaterial';
 
 export const treeUniforms = {
   uTime: { value: 0 },
@@ -20,7 +21,12 @@ export function createTreeMaterial(): THREE.MeshStandardMaterial {
     metalness: 0,
   });
   mat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, treeUniforms);
+    Object.assign(shader.uniforms, treeUniforms, {
+      uBrushPos: terrainUniforms.uBrushPos,
+      uBrushRadius: terrainUniforms.uBrushRadius,
+      uBrushOpacity: terrainUniforms.uBrushOpacity,
+      uBrushColor: terrainUniforms.uBrushColor,
+    });
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -28,7 +34,8 @@ export function createTreeMaterial(): THREE.MeshStandardMaterial {
 attribute float aGrow;
 attribute float aHover;
 uniform float uTime;
-uniform float uWind;`,
+uniform float uWind;
+varying vec2 vKytSite;`,
       )
       .replace(
         '#include <begin_vertex>',
@@ -43,7 +50,28 @@ transformed.z += cos(uTime * (1.1 + aHover * 2.7) + kytPh) * kytAmp * 0.6;
 // shrinking trees lean as they go
 transformed.x += (1.0 - kytG) * kytH * 0.35;
 transformed *= kytG;
-transformed.y -= (1.0 - kytG) * 2.5;`,
+transformed.y -= (1.0 - kytG) * 2.5;
+vKytSite = kytIP.xz;`,
+      );
+    // trees inside the section-3 brush get a soft warm highlight (the ring itself hides under canopy)
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+varying vec2 vKytSite;
+uniform vec3 uBrushPos;
+uniform float uBrushRadius;
+uniform float uBrushOpacity;
+uniform vec3 uBrushColor;`,
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        `if (uBrushOpacity > 0.001) {
+  float bd = distance(vKytSite, uBrushPos.xz);
+  float inside = 1.0 - smoothstep(uBrushRadius - 2.0, uBrushRadius, bd);
+  outgoingLight = mix(outgoingLight, uBrushColor, inside * 0.28 * uBrushOpacity);
+}
+#include <opaque_fragment>`,
       );
   };
   // one program for every species

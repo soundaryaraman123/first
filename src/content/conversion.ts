@@ -18,6 +18,8 @@ export const conversion = {
   completeBody:
     'Across much of the lower and middle hills, chir pine now dominates slopes that once held mixed forest.', // TODO-VERIFY
   continueCue: 'Keep scrolling',
+  afterBody:
+    'A slope of one species holds water, soil and life differently from the forest it replaced. Next: what that changes.', // TODO-VERIFY
   /** once this fraction of the slope is converted, the full sweep starts automatically */
   autoSweepAt: 0.4,
   /** brush radius in world units (the slope is ~400 units wide) */
