@@ -8,7 +8,9 @@ import * as THREE from 'three';
 import { palette as defaults, type Palette } from './palette';
 
 const STORAGE_KEY = 'kyt-palette';
-const panelEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('palette');
+const panelEnabled =
+  typeof window !== 'undefined' &&
+  (new URLSearchParams(window.location.search).has('palette') || window.location.hash === '#palette');
 
 function load(): Palette {
   const p = structuredClone(defaults);

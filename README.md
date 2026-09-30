@@ -21,7 +21,7 @@ npm run typecheck
 | `?tier=low` / `?tier=high` | force the mobile / desktop performance tier |
 | `?motion=reduced` | force prefers-reduced-motion behaviour |
 | `?nowebgl` | force the static no-WebGL fallback |
-| `?palette` | live colour panel for the 3D scene (see below) |
+| `?palette` or `#palette` | live colour panel for the 3D scene (see below) |
 
 ## Where to tune things
 
