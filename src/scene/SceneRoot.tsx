@@ -13,6 +13,7 @@ import { Atmosphere } from './Atmosphere';
 import { CameraRig } from './CameraRig';
 import { Terrain } from './terrain/Terrain';
 import { Forest } from './trees/Forest';
+import { FogLayers } from './fog/FogLayers';
 import { installPointer } from './interaction/pointer';
 import styles from './SceneRoot.module.css';
 
@@ -36,6 +37,7 @@ function World() {
       <CameraRig />
       <Terrain heightfield={world.heightfield} />
       <Forest forest={world.forest} />
+      <FogLayers />
     </>
   );
 }

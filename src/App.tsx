@@ -5,6 +5,7 @@ import { useUiStore } from './state/uiStore';
 import { site } from './content/site';
 import { Loader } from './components/Loader';
 import { DebugHud } from './components/DebugHud';
+import { SoundToggle } from './components/SoundToggle';
 import { debugEnabled } from './lib/device';
 
 // The 3D scene is split into its own chunk and loaded after the page shell.
@@ -40,6 +41,7 @@ export function App() {
           <Component key={id} index={index} />
         ))}
       </main>
+      {webgl && <SoundToggle />}
       {debugEnabled && <DebugHud />}
     </>
   );
