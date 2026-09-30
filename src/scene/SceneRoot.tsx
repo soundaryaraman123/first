@@ -14,6 +14,7 @@ import { CameraRig } from './CameraRig';
 import { Terrain } from './terrain/Terrain';
 import { Forest } from './trees/Forest';
 import { FogLayers } from './fog/FogLayers';
+import { Railway } from './railway/Railway';
 import { SceneInteraction } from './interaction/SceneInteraction';
 import { installPointer } from './interaction/pointer';
 import styles from './SceneRoot.module.css';
@@ -38,6 +39,7 @@ function World() {
       <CameraRig />
       <Terrain heightfield={world.heightfield} />
       <Forest forest={world.forest} />
+      <Railway heightfield={world.heightfield} />
       <FogLayers />
       <SceneInteraction world={world} />
     </>

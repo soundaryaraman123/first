@@ -1,4 +1,183 @@
 .section {
   position: relative;
-  height: 420vh;
+  height: 460vh;
+  pointer-events: none;
+}
+.intro {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+.title {
+  font-size: var(--text-3xl);
+}
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: var(--space-5) clamp(var(--space-4), 4vw, var(--space-8));
+  margin-top: 60vh;
+}
+/* A ledger page: ruled lines, a margin rule, a big ticking year */
+.ledger {
+  pointer-events: auto;
+  width: min(27rem, 100%);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background:
+    linear-gradient(90deg, transparent 2.6rem, rgb(179 54 44 / 0.35) 2.6rem, rgb(179 54 44 / 0.35) calc(2.6rem + 1px), transparent calc(2.6rem + 1px)),
+    repeating-linear-gradient(180deg, transparent 0 1.7rem, rgb(38 34 27 / 0.07) 1.7rem calc(1.7rem + 1px)),
+    var(--panel-bg-strong);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--panel-shadow);
+}
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-left: var(--space-7);
+  font-family: var(--font-serif);
+  color: var(--kyt-bark-700);
+  font-variant-numeric: tabular-nums;
+}
+.circa {
+  font-size: var(--text-lg);
+  font-style: italic;
+  color: var(--color-text-subtle);
+}
+.year {
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+}
+.body {
+  padding-left: var(--space-7);
+}
+.listWrap {
+  position: relative;
+  margin: var(--space-3) 0 var(--space-4);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--space-5);
+  display: grid;
+  gap: var(--space-2);
+}
+.track {
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgb(38 34 27 / 0.12);
+}
+.fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  transform-origin: top center;
+  transform: scaleY(0);
+}
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  align-items: baseline;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  transition: color var(--dur-med);
+}
+.dot {
+  position: absolute;
+  left: calc(-1 * var(--space-5) + 1px);
+  top: 0.45em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--kyt-paper-50);
+  border: 2px solid rgb(38 34 27 / 0.25);
+  transition: background var(--dur-med), border-color var(--dur-med);
+}
+.item[data-state='past'] {
+  color: var(--color-text-muted);
+}
+.item[data-state='past'] .dot {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.item[data-state='active'] {
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+.item[data-state='active'] .dot {
+  background: var(--kyt-paper-50);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgb(179 54 44 / 0.18);
+}
+.itemYear {
+  font-variant-numeric: tabular-nums;
+}
+.detail {
+  min-height: 7.5rem;
+}
+.detailTitle {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-2);
+}
+.hint {
+  font-style: italic;
+  color: var(--color-text-subtle);
+}
+.rail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kyt-bark-700);
+  opacity: 0;
+  transition: opacity var(--dur-med);
+}
+.rail[data-show] {
+  opacity: 1;
+}
+.railIcon {
+  width: 28px;
+  height: 8px;
+  background:
+    repeating-linear-gradient(90deg, #6b5139 0 3px, transparent 3px 7px) center / 100% 8px no-repeat,
+    linear-gradient(#3b332c, #3b332c) center / 100% 2px no-repeat;
+}
+@media (max-width: 640px) {
+  .sticky {
+    align-items: flex-end;
+    padding: var(--space-3);
+  }
+  .ledger {
+    padding: var(--space-3) var(--space-4);
+    background: var(--panel-bg-strong);
+  }
+  .counter,
+  .body {
+    padding-left: 0;
+  }
+  .year {
+    font-size: var(--text-2xl);
+  }
+  .listWrap {
+    display: none;
+  }
+  .detail {
+    min-height: 0;
+  }
 }
