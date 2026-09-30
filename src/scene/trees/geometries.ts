@@ -174,9 +174,9 @@ const makers: Record<TreeId, Maker> = {
       pos: [0, 4.8, 0],
       scale: [1, 1.3, 1],
     });
-    for (let i = 0; i < 9; i++) {
-      const [x, y, z] = onShell(rng, 1.85, 0.15);
-      b.add(cone(0.16, 0.6, 4), c.accent!, { pos: [x, 4.8 + y * 1.3, z] });
+    for (let i = 0; i < 5; i++) {
+      const [x, y, z] = onShell(rng, 1.8, 0.3);
+      b.add(cone(0.2, 0.5, 4), c.accent!, { pos: [x, 4.7 + y * 1.3, z] });
     }
   },
   chirPine: (b, rng) => {

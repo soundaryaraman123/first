@@ -1,0 +1,31 @@
+.label {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-overlay-ui);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1) var(--space-3);
+  background: var(--panel-bg-strong);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-accent);
+  box-shadow: 0 4px 16px rgb(38 34 27 / 0.2);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  will-change: transform;
+}
+.label[data-show] {
+  opacity: 1;
+}
+.local {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+.common {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

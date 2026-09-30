@@ -58,7 +58,7 @@ export const TREE_VISUALS: Record<TreeId, TreeVisual> = {
     weight: 0.45,
     moisture: 0.9,
     scale: [1.08, 1.5],
-    colors: { trunk: '#58463a', canopy: '#4d6c38', accent: '#efe5ca' },
+    colors: { trunk: '#58463a', canopy: '#4d6c38', accent: '#d9d2b4' },
   },
   chirPine: {
     weight: 1,

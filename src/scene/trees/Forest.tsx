@@ -6,6 +6,7 @@ import { useUiStore } from '../../state/uiStore';
 import { mulberry32 } from '../../lib/random';
 import { TREE_IDS } from './speciesVisuals';
 import { createTreeMaterial, treeUniforms } from './treeMaterial';
+import { now } from '../interaction/conversionActions';
 import { paintDryness, siteMatrix, updateForest, type Forest as ForestData } from './forestState';
 
 /** One InstancedMesh per species (7 native + 2 pines), driven by typed-array state. */
@@ -64,7 +65,7 @@ export function Forest({ forest }: { forest: ForestData }) {
     const { storyPos } = useScrollStore.getState();
     const { reducedMotion } = useUiStore.getState();
     treeUniforms.uWind.value = reducedMotion ? 0 : 1;
-    updateForest(forest, storyPos, state.clock.elapsedTime, dt, reducedMotion);
+    updateForest(forest, storyPos, now(), dt, reducedMotion);
     for (let m = 0; m < meshes.length; m++) {
       if (forest.meshDirty[m]) {
         (meshes[m].geometry.getAttribute('aGrow') as THREE.BufferAttribute).needsUpdate = true;

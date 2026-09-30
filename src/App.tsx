@@ -6,6 +6,7 @@ import { site } from './content/site';
 import { Loader } from './components/Loader';
 import { DebugHud } from './components/DebugHud';
 import { SoundToggle } from './components/SoundToggle';
+import { TreeLabel } from './components/TreeLabel';
 import { debugEnabled } from './lib/device';
 
 // The 3D scene is split into its own chunk and loaded after the page shell.
@@ -42,6 +43,7 @@ export function App() {
         ))}
       </main>
       {webgl && <SoundToggle />}
+      {webgl && <TreeLabel />}
       {debugEnabled && <DebugHud />}
     </>
   );
