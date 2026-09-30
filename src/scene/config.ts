@@ -35,14 +35,7 @@ export const WORLD = {
 export const RENDER = {
   maxDpr: { high: 2, low: 1.5 } as Record<Tier, number>,
   antialias: { high: true, low: false } as Record<Tier, boolean>,
+  /** ink outlines on trees (the costliest part of the cel look); ridgelines are always outlined */
+  treeOutlines: { high: true, low: true } as Record<Tier, boolean>,
 };
 
-export const COLORS = {
-  mist: '#dfe3dd',
-  skyTop: '#c3cdcf',
-  sun: '#fff1d6',
-  hemiSky: '#e4ebea',
-  hemiGround: '#5d5443',
-  brush: '#fff6e2',
-  dryGround: '#a88d5f',
-};

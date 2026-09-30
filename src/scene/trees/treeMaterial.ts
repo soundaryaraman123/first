@@ -1,27 +1,39 @@
 /**
- * Shared tree material: flat-shaded, vertex-coloured, instanced.
- * Injected per-instance attributes:
- *   aGrow  0..1  scale + sink (conversion / clearing animations)
- *   aHover 0..1  extra sway when the pointer is over this tree
- * and a gentle wind sway driven by uTime.
+ * Cel-shaded tree material (MeshToonMaterial + shared toon ramp), one per
+ * species so each can take its own palette colours.
+ *
+ * Procedural trees tag every vertex with `aPart` (0 trunk, 1 canopy,
+ * 2 canopy alt, 3 accent); the shader looks the colour up from palette
+ * uniforms, so colour changes are live. glTF models use aPart = -1 and keep
+ * their own vertex colours.
  */
 import * as THREE from 'three';
+import type { TreeId } from '../../content/species';
 import { terrainUniforms } from '../terrain/terrainMaterial';
+import { onPalette, toonRamp } from '../paletteRuntime';
+import { TREE_DEFORM, TREE_DEFORM_PARS, treeUniforms } from './treeDeform';
 
-export const treeUniforms = {
-  uTime: { value: 0 },
-  uWind: { value: 1 },
-};
+export { treeUniforms };
 
-export function createTreeMaterial(): THREE.MeshStandardMaterial {
-  const mat = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    flatShading: true,
-    roughness: 0.95,
-    metalness: 0,
+export function createTreeMaterial(id: TreeId): THREE.MeshToonMaterial {
+  const mat = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: toonRamp });
+  const parts = {
+    uTrunk: { value: new THREE.Color() },
+    uCanopy: { value: new THREE.Color() },
+    uCanopyAlt: { value: new THREE.Color() },
+    uAccent: { value: new THREE.Color() },
+  };
+  const unsubscribe = onPalette((p) => {
+    const c = p.trees[id];
+    parts.uTrunk.value.set(c.trunk);
+    parts.uCanopy.value.set(c.canopy);
+    parts.uCanopyAlt.value.set(c.canopyAlt);
+    parts.uAccent.value.set(c.accent);
   });
+  mat.addEventListener('dispose', unsubscribe);
+
   mat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, treeUniforms, {
+    Object.assign(shader.uniforms, treeUniforms, parts, {
       uBrushPos: terrainUniforms.uBrushPos,
       uBrushRadius: terrainUniforms.uBrushRadius,
       uBrushOpacity: terrainUniforms.uBrushOpacity,
@@ -31,42 +43,37 @@ export function createTreeMaterial(): THREE.MeshStandardMaterial {
       .replace(
         '#include <common>',
         `#include <common>
-attribute float aGrow;
-attribute float aHover;
-uniform float uTime;
-uniform float uWind;
-varying vec2 vKytSite;`,
+${TREE_DEFORM_PARS}
+attribute float aPart;
+uniform vec3 uTrunk;
+uniform vec3 uCanopy;
+uniform vec3 uCanopyAlt;
+uniform vec3 uAccent;
+varying vec2 vKytSite;
+varying vec3 vKytPart;`,
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-float kytG = clamp(aGrow, 0.0, 1.0);
-float kytH = max(transformed.y, 0.0);
-vec3 kytIP = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
-float kytPh = kytIP.x * 0.13 + kytIP.z * 0.07;
-// uWind is 0 under reduced motion, which also stills the hover sway
-float kytAmp = kytH * kytH * uWind * (0.0016 + 0.018 * aHover);
-transformed.x += sin(uTime * (1.3 + aHover * 3.2) + kytPh) * kytAmp;
-transformed.z += cos(uTime * (1.1 + aHover * 2.7) + kytPh) * kytAmp * 0.6;
-// shrinking trees lean as they go
-transformed.x += (1.0 - kytG) * kytH * 0.35;
-transformed *= kytG;
-transformed.y -= (1.0 - kytG) * 2.5;
-vKytSite = kytIP.xz;`,
+${TREE_DEFORM}
+vKytSite = kytIP.xz;
+vKytPart = aPart < -0.5 ? vec3(1.0) : aPart < 0.5 ? uTrunk : aPart < 1.5 ? uCanopy : aPart < 2.5 ? uCanopyAlt : uAccent;`,
       );
-    // trees inside the section-3 brush get a soft warm highlight (the ring itself hides under canopy)
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
 varying vec2 vKytSite;
+varying vec3 vKytPart;
 uniform vec3 uBrushPos;
 uniform float uBrushRadius;
 uniform float uBrushOpacity;
 uniform vec3 uBrushColor;`,
       )
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= vKytPart;')
       .replace(
         '#include <opaque_fragment>',
+        // trees inside the section-3 brush get a soft warm highlight (the ring hides under canopy)
         `if (uBrushOpacity > 0.001) {
   float bd = distance(vKytSite, uBrushPos.xz);
   float inside = 1.0 - smoothstep(uBrushRadius - 2.0, uBrushRadius, bd);
@@ -75,7 +82,7 @@ uniform vec3 uBrushColor;`,
 #include <opaque_fragment>`,
       );
   };
-  // one program for every species
-  mat.customProgramCacheKey = () => 'kyt-tree';
+  // same program for every species; only uniforms differ
+  mat.customProgramCacheKey = () => 'kyt-tree-toon';
   return mat;
 }

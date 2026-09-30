@@ -11,7 +11,8 @@
  * World orientation (procedural terrain):
  *   -z is "into the screen": valley floor near z = 0, the forested slope
  *   rises to a ridge near z = -175, snowy peaks beyond z = -250.
- *   Heights: valley ~0, ridge ~100, peaks 200–300. Trees are ~5–9 units tall.
+ *   Heights: valley ~0, ridge ~100, peaks 200–300, sea of clouds ~190–240.
+ *   Trees are ~5–10 units tall.
  *
  * Tip: open the site with ?debug to see the live storyPos.
  */
@@ -27,9 +28,9 @@ export interface CameraKey {
 }
 
 export const cameraPath: CameraKey[] = [
-  { at: 0.0, pos: [0, 150, 250], target: [0, 125, -300], fov: 42, hold: true, note: 'Arrival: misty ridgelines' },
-  { at: 0.55, pos: [0, 130, 215], target: [0, 90, -200], fov: 44 },
-  { at: 1.0, pos: [-30, 85, 150], target: [-10, 40, -80], fov: 45, note: 'Descending toward the slope' },
+  { at: 0.0, pos: [0, 330, 430], target: [0, 250, -420], fov: 50, hold: true, note: 'Arrival: above a sea of clouds' },
+  { at: 0.5, pos: [-10, 235, 300], target: [0, 150, -180], fov: 48, note: 'Dropping through the clouds' },
+  { at: 1.0, pos: [-30, 105, 165], target: [-10, 40, -80], fov: 46, note: 'Below the clouds, over the valley' },
   { at: 1.35, pos: [-55, 52, 70], target: [-25, 40, -60], fov: 45, hold: true, note: 'Close on the mixed forest' },
   { at: 1.75, pos: [20, 50, 60], target: [15, 38, -60], fov: 45, hold: true },
   { at: 2.05, pos: [0, 95, 150], target: [0, 25, -40], fov: 46, note: 'The turn: wide, valley + railway' },

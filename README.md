@@ -21,6 +21,7 @@ npm run typecheck
 | `?tier=low` / `?tier=high` | force the mobile / desktop performance tier |
 | `?motion=reduced` | force prefers-reduced-motion behaviour |
 | `?nowebgl` | force the static no-WebGL fallback |
+| `?palette` | live colour panel for the 3D scene (see below) |
 
 ## Where to tune things
 
@@ -29,13 +30,27 @@ npm run typecheck
 | All copy | `src/content/*.ts` (one file per section, plus `site.ts`) |
 | Species data (names, altitude bands, facts, plant plates) | `src/content/species.ts` |
 | Camera path (keyframes on the story timeline) | `src/scene/cameraPath.ts` |
-| Design tokens (colour, type, spacing, radius, motion) | `src/styles/tokens.css` |
-| Tree look & placement preferences | `src/scene/trees/speciesVisuals.ts` |
+| **3D scene colours** (sky, clouds, haze, light, cel bands, outlines, ground, every tree) | `src/scene/palette.ts` |
+| Design tokens for the page UI (colour, type, spacing, radius, motion) | `src/styles/tokens.css` |
+| Tree placement preferences | `src/scene/trees/speciesVisuals.ts` |
+| Tree shapes (procedural placeholders) | `src/scene/trees/geometries.ts` |
 | World constants (tree counts, terrain size, seed, clearing share) | `src/scene/config.ts` |
 | Section 3 threshold & brush size | `src/content/conversion.ts` |
 | Animation timings (sink/grow, ripple, sweep) | `TIMING` in `src/scene/trees/forestState.ts` |
 
 **Content accuracy:** every historical/ecological detail is a placeholder marked `// TODO-VERIFY`. While `site.showDraftTags` is `true`, the UI shows small "to verify" tags next to those facts. Set it to `false` for launch.
+
+## Changing the scene colours
+
+The landscape is cel-shaded: flat bands of light set by `toon.steps`, with ink outlines whose colour and width you can change. Every colour lives in `src/scene/palette.ts`.
+
+The quickest way to tune them:
+
+1. Open the site with `?palette` (e.g. `http://localhost:5173/?palette`).
+2. Change colours and sliders in the "Scene colours" panel. Changes apply live and are remembered in that browser.
+3. Click **Copy palette** and paste the result over the object in `src/scene/palette.ts` to keep it. **Reset** returns to the file's values.
+
+Tree colours apply to the procedural placeholder trees. A `.glb` model keeps its own colours.
 
 ## Dropping in real assets
 
@@ -58,7 +73,10 @@ src/
   scroll/         Lenis <-> GSAP ScrollTrigger sync, section-3 scroll gate, useSectionProgress
   sections/       one folder per section + registry.ts (order = story index)
   scene/          the single persistent <Canvas> (lazy-loaded chunk)
+    palette.ts, paletteRuntime.ts   all scene colours + live updates
+    outline.ts                      inverted-hull ink outlines
     cameraPath.ts, CameraRig.tsx, Atmosphere.tsx
+    clouds/       cel-shaded cumulus: the opening sea of clouds
     terrain/      heightfield (procedural or PNG), ray marching, brush + dryness shader
     trees/        procedural geometry, glTF loader, seeded scatter, typed-array forest state
     fog/          section-0 mist layers with pointer parting

@@ -13,6 +13,7 @@ import { SECTION } from '../../sections/sectionIndex';
 import { invLerp } from '../../lib/math';
 
 import { RAILWAY_DRAW } from './railwayTiming';
+import { toonRamp } from '../paletteRuntime';
 const RADIAL = 5;
 const SEGMENTS = 360;
 const SLEEPER_SPACING = 2.4;
@@ -35,14 +36,14 @@ export function Railway({ heightfield }: { heightfield: Heightfield }) {
     const draped = new THREE.CatmullRomCurve3(dense, false, 'centripetal');
 
     const tubeGeo = new THREE.TubeGeometry(draped, SEGMENTS, 0.42, RADIAL, false);
-    const tubeMat = new THREE.MeshStandardMaterial({ color: '#3b332c', roughness: 0.7, metalness: 0.2, flatShading: true });
+    const tubeMat = new THREE.MeshToonMaterial({ color: '#3b332c', gradientMap: toonRamp });
     const tube = new THREE.Mesh(tubeGeo, tubeMat);
     tube.frustumCulled = false;
 
     const length = draped.getLength();
     const count = Math.floor(length / SLEEPER_SPACING);
     const sleeperGeo = new THREE.BoxGeometry(2.6, 0.25, 0.55);
-    const sleeperMat = new THREE.MeshStandardMaterial({ color: '#6b5139', roughness: 1, flatShading: true });
+    const sleeperMat = new THREE.MeshToonMaterial({ color: '#6b5139', gradientMap: toonRamp });
     const sleepers = new THREE.InstancedMesh(sleeperGeo, sleeperMat, count);
     sleepers.frustumCulled = false;
     const m = new THREE.Matrix4();

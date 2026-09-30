@@ -162,16 +162,20 @@ export function buildProceduralHeights(size: number, res: number, seed: number):
       const relief = clamp(Math.abs(d) / 120, 0.15, 1);
       h += fbm(n1, x * 0.018, z * 0.018, 4) * 9 * relief;
 
-      // the high range behind the ridge
-      const back = smoothstep(-205, -330, z);
+      // rolling forested ridges receding behind the main ridge
+      const back = smoothstep(-195, -300, z);
       if (back > 0) {
-        const peaks = ridged(n3, x * 0.0065, z * 0.0065, 5);
-        h += back * (70 + 230 * peaks);
+        const roll = 0.5 + 0.5 * fbm(n3, x * 0.006, z * 0.012, 3);
+        h += back * (35 + 75 * roll);
       }
 
-      // lift the far corners so the world edge never shows
-      const edge = smoothstep(half * 0.72, half, Math.abs(x));
-      h += edge * 90 * (0.6 + 0.4 * fbm(n2, x * 0.01, z * 0.01, 2));
+      // the snow range on the horizon
+      const far = smoothstep(-330, -440, z);
+      if (far > 0) h += far * (90 + 180 * ridged(n3, x * 0.004, z * 0.004, 4));
+
+      // rolling hills at the sides so the world edge never shows
+      const edge = smoothstep(half * 0.7, half, Math.abs(x));
+      h += edge * 75 * (0.6 + 0.4 * fbm(n2, x * 0.01, z * 0.01, 2));
 
       heights[iz * res + ix] = h;
     }

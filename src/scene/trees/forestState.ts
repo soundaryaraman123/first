@@ -37,6 +37,8 @@ export const TIMING = {
   sweep: 2.6,
 };
 
+export const UNASSIGNED = 0xffffffff;
+
 export interface Forest {
   count: number;
   geoms: TreeGeometry[];
@@ -63,7 +65,12 @@ export interface Forest {
   nativeP: Float32Array;
   pineP: Float32Array;
   /** per-mesh instance counts and attribute arrays */
+  /** instance capacity per mesh */
   meshCount: number[];
+  /** pine instances are handed out on conversion, so unconverted pines cost nothing to draw */
+  pineUsed: number[];
+  /** sites whose pine instance was just assigned and needs its matrix written */
+  newPineSites: number[];
   grow: Float32Array[];
   hover: Float32Array[];
   meshDirty: boolean[];
@@ -101,6 +108,8 @@ export function buildForest(hf: Heightfield, geoms: TreeGeometry[], tier: Tier):
     nativeP: new Float32Array(n).fill(1),
     pineP: new Float32Array(n),
     meshCount,
+    pineUsed: new Array(TREE_IDS.length).fill(0),
+    newPineSites: [],
     grow: [],
     hover: [],
     meshDirty: new Array(TREE_IDS.length).fill(true),
@@ -138,7 +147,8 @@ export function buildForest(hf: Heightfield, geoms: TreeGeometry[], tier: Tier):
     f.nativeSlot[i] = meshCount[s.native]++;
     const pm = NATIVE_COUNT + s.pine;
     f.pineMesh[i] = pm;
-    f.pineSlot[i] = meshCount[pm]++;
+    f.pineSlot[i] = UNASSIGNED;
+    meshCount[pm]++;
     f.jitter[i] = rng();
     let best = 0;
     let bestD = Infinity;
@@ -199,8 +209,10 @@ export function updateForest(f: Forest, storyPos: number, now: number, dt: numbe
     if (pp !== pT) {
       pp = pT > pp ? Math.min(pT, pp + inStep) : Math.max(pT, pp - inStep);
       f.pineP[i] = pp;
-      f.grow[f.pineMesh[i]][f.pineSlot[i]] = easeInOutCubic(pp);
-      f.meshDirty[f.pineMesh[i]] = true;
+      if (f.pineSlot[i] !== UNASSIGNED) {
+        f.grow[f.pineMesh[i]][f.pineSlot[i]] = easeInOutCubic(pp);
+        f.meshDirty[f.pineMesh[i]] = true;
+      }
       anyChange = true;
     }
   }
@@ -320,6 +332,12 @@ export function pickTree(
 
 // ---------------------------------------------------------------- conversion
 
+function assignPine(f: Forest, i: number) {
+  if (f.pineSlot[i] !== UNASSIGNED) return;
+  f.pineSlot[i] = f.pineUsed[f.pineMesh[i]]++;
+  f.newPineSites.push(i);
+}
+
 /** Convert all native sites within `radius` of (cx, cz), rippling outward. Returns count converted. */
 export function convertAround(f: Forest, cx: number, cz: number, radius: number, now: number, instant: boolean) {
   let added = 0;
@@ -331,6 +349,7 @@ export function convertAround(f: Forest, cx: number, cz: number, radius: number,
     const d2 = dx * dx + dz * dz;
     if (d2 > r2) continue;
     f.converted[i] = 1;
+    assignPine(f, i);
     f.convertAt[i] = instant
       ? now
       : now + (Math.sqrt(d2) / radius) * TIMING.rippleSpread + f.jitter[i] * TIMING.rippleJitter;
@@ -351,6 +370,7 @@ export function convertAll(f: Forest, now: number, instant: boolean): number {
   for (let i = 0; i < f.count; i++) {
     if (f.converted[i]) continue;
     f.converted[i] = 1;
+    assignPine(f, i);
     const along = (f.meters[i] - minM) / Math.max(maxM - minM, 1);
     f.convertAt[i] = instant ? now : now + along * TIMING.sweep + f.jitter[i] * 0.35;
   }

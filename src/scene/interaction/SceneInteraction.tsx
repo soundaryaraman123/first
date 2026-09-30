@@ -20,6 +20,7 @@ import { species, type TreeId } from '../../content/species';
 import { pickTree, setHovered, type PickKind } from '../trees/forestState';
 import { TREE_IDS } from '../trees/speciesVisuals';
 import { pointer, isUiTarget } from './pointer';
+import { debugEnabled } from '../../lib/device';
 import { labelBridge } from './labelBridge';
 import { terrainUniforms } from '../terrain/terrainMaterial';
 import { updateBrush, flashBrush } from './brush';
@@ -85,6 +86,7 @@ export function SceneInteraction({ world }: { world: World }) {
 
       if (inRange(storyPos, CONVERSION)) {
         const pine = pickTree(world.forest, ray.origin, ray.direction, maxT, ['pine']);
+        if (debugEnabled) (window as unknown as { __kytClick: unknown }).__kytClick = { tTerrain, pine, storyPos, o: ray.origin.toArray(), d: ray.direction.toArray() };
         if (pine) {
           ui.set({ infoSpecies: TREE_IDS[pine.mesh] });
           return;

@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { useScrollStore } from '../../state/scrollStore';
 import { useUiStore } from '../../state/uiStore';
 import { pointer } from '../interaction/pointer';
-import { COLORS } from '../config';
+import { onPalette } from '../paletteRuntime';
 import { smoothstep } from '../../lib/math';
 
 const vertexShader = /* glsl */ `
@@ -75,6 +75,10 @@ const fragmentShader = /* glsl */ `
     #include <colorspace_fragment>
   }`;
 
+// wisps take the cloud colour from palette.ts
+const mistColor = new THREE.Color();
+onPalette((p) => mistColor.set(p.clouds.light));
+
 const DEPTHS = [22, 45, 80, 130, 200];
 const tmpPointer = new THREE.Vector2();
 const forward = new THREE.Vector3();
@@ -99,13 +103,13 @@ export function FogLayers() {
         defines: { OCTAVES: tier === 'low' ? 3 : 4 },
         uniforms: {
           uTime: { value: 0 },
-          uOpacity: { value: 0.78 - i * 0.06 },
+          uOpacity: { value: 0.38 - i * 0.04 },
           uSeed: { value: i * 13.7 },
           uScale: { value: 2.2 + i * 0.5 },
           uPointer: { value: new THREE.Vector2(0.5, 0.5) },
           uPointerAmt: { value: 0 },
           uResolution: { value: new THREE.Vector2(1, 1) },
-          uColor: { value: new THREE.Color(COLORS.mist) },
+          uColor: { value: mistColor },
         },
       });
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);

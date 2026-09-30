@@ -63,7 +63,11 @@ function gltfToGeometry(scene: THREE.Object3D): THREE.BufferGeometry | null {
     parts.push(g);
   });
   if (!parts.length) return null;
-  return mergeGeometries(parts, false);
+  const merged = mergeGeometries(parts, false);
+  if (!merged) return null;
+  // aPart = -1: keep the model's own colours (palette tree colours apply to procedural trees only)
+  merged.setAttribute('aPart', new THREE.BufferAttribute(new Float32Array(merged.getAttribute('position').count).fill(-1), 1));
+  return merged;
 }
 
 export async function loadSpeciesGeometry(id: TreeId): Promise<TreeGeometry> {

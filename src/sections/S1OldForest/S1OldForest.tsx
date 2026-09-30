@@ -3,7 +3,7 @@ import type { SectionProps } from '../registry';
 import { useSectionProgress } from '../../scroll/useSectionProgress';
 import { oldForest } from '../../content/oldForest';
 import { NATIVE_TREES, species } from '../../content/species';
-import { TREE_VISUALS } from '../../scene/trees/speciesVisuals';
+import { palette } from '../../scene/palette';
 import { OverlayPanel } from '../../components/OverlayPanel';
 import { DraftTag } from '../../components/DraftTag';
 import styles from './S1OldForest.module.css';
@@ -39,7 +39,7 @@ export function S1OldForest({ index }: SectionProps) {
                   <li key={id}>
                     <span
                       className={styles.swatch}
-                      style={{ background: TREE_VISUALS[id].colors.accent ?? TREE_VISUALS[id].colors.canopy }}
+                      style={{ background: id === 'rhododendron' ? palette.trees[id].accent : palette.trees[id].canopy }}
                       aria-hidden="true"
                     />
                     <span className={styles.local}>{species[id].localName}</span>

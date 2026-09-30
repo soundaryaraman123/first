@@ -13,6 +13,9 @@ import { debugEnabled } from './lib/device';
 
 // The 3D scene is split into its own chunk and loaded after the page shell.
 const SceneRoot = lazy(() => import('./scene/SceneRoot'));
+// ?palette opens the live scene-colour panel (not loaded otherwise)
+const PalettePanel = lazy(() => import('./components/PalettePanel'));
+const paletteEnabled = new URLSearchParams(window.location.search).has('palette');
 
 export function App() {
   const webgl = useUiStore((s) => s.webgl);
@@ -49,6 +52,11 @@ export function App() {
       {webgl && <TreeLabel />}
       <InfoCard />
       {debugEnabled && <DebugHud />}
+      {webgl && paletteEnabled && (
+        <Suspense fallback={null}>
+          <PalettePanel />
+        </Suspense>
+      )}
     </>
   );
 }

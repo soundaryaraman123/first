@@ -14,6 +14,7 @@ import { CameraRig, cameraCut } from './CameraRig';
 import { Terrain } from './terrain/Terrain';
 import { Forest } from './trees/Forest';
 import { FogLayers } from './fog/FogLayers';
+import { Clouds } from './clouds/Clouds';
 import { Railway } from './railway/Railway';
 import { SceneInteraction } from './interaction/SceneInteraction';
 import { installPointer } from './interaction/pointer';
@@ -40,6 +41,7 @@ function World() {
       <Terrain heightfield={world.heightfield} />
       <Forest forest={world.forest} />
       <Railway heightfield={world.heightfield} />
+      <Clouds />
       <FogLayers />
       <SceneInteraction world={world} />
     </>
